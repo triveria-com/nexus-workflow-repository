@@ -154,6 +154,7 @@ assuming any of them exist.
 - **Component/batch passport** — issued by the supplier, covers a batch of parts. UNTP
   `DigitalProductPassport`. Wallet config ID `component_batch_passport` below.
   Schema: <https://untp.unece.org/artefacts/schema/v0.7.0/dpp/DigitalProductPassport.json>.
+  *This credential is self-issued*
 - **Product passport** — issued by the manufacturer for the finished product, referencing
   the component passports that went into it. Same UNTP type and schema as above; a batch
   and a finished good are told apart by `credentialSubject.identificationGranularity`

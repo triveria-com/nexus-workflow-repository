@@ -473,6 +473,8 @@ Repeat for every supplier product in `bom`:
 
 Report per supplier product: DPP verified or not, and which conformance credentials were
 obtained. If any fails, say which and what it blocks.
+If possible, create a credential trust graph describing the relationships between the DPPs
+and Conformance Credentials.
 
 ### 2. Receiving invoices
 
@@ -556,6 +558,8 @@ Answer in two parts:
 - **What it is made of** — one line per component: supplier product, batch and quantity
   from the Make record, whether its DPP verified, which DID signed it, and how that DID was
   pinned. Name any Make record that links to a missing or failing supplier DPP.
+- If possible, create a credential trust graph describing the relationships between the DPPs,
+  Make Records and Conformance Credentials.
 
 ## Owner — checking a finished product
 

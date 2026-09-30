@@ -3,13 +3,14 @@ slug: dpp-supply-chain
 title: Digital Product Passport (DPP) supply chain workflow
 summary: >-
   Carry Digital Product Passports along a supply chain on the NOOP trust framework: each
-  supplier publishes a public DPP for its product and privately holds the conformance
-  credentials behind its claims; the manufacturer verifies the DPPs of every supplier on
-  its bill of materials, requests the private conformance credentials it needs over WMP,
-  and accepts each supplier's invoice over WMP; it then publishes a DPP for its own
-  product together with one Digital Traceability Event (a UNTP Make record) per supplier
-  product, stating that the component was used to make it. A buyer then verifies the
-  manufacturer's DPP, requests the manufacturer's private conformance credential over WMP,
+  supplier publishes a public DPP for its product and holds the conformance credentials
+  behind its claims — publishing each one as a Linked VP or keeping it private; the
+  manufacturer verifies the DPPs of every supplier on its bill of materials, fetches the
+  conformance credentials it needs (from the supplier's Linked VP where published, over WMP
+  otherwise), and accepts each supplier's invoice over WMP; it then publishes a DPP for its
+  own product together with one Digital Traceability Event (a UNTP Make record) per
+  supplier product, stating that the component was used to make it. A buyer then verifies
+  the manufacturer's DPP, fetches the manufacturer's conformance credential the same way,
   and follows the Make records to learn what the product is made of. NOOP means there is
   no trust list behind any of this — every verifying step has to pin the issuer DID out
   of band, and this workflow says where.
@@ -20,9 +21,9 @@ questions:
     options: [supplier, manufacturer, buyer, owner]
     hint: >-
       "supplier" = a component maker that publishes a DPP, holds conformance credentials
-      privately, and invoices the manufacturer. "manufacturer" = the company building a
-      product from supplier components, issuing its own DPP and Make records, and holding
-      its own conformance credential privately. "buyer" = a business buying the
+      (published or private), and invoices the manufacturer. "manufacturer" = the company
+      building a product from supplier components, issuing its own DPP and Make records,
+      and holding its own conformance credential (published or private). "buyer" = a business buying the
       manufacturer's product, which verifies its DPP and conformance credential and
       traces what it is made of. "owner" = whoever ends up with the finished product and
       wants to check its public data.
@@ -39,7 +40,8 @@ questions:
     hint: >-
       Everything in the DPP is public. If a claim is independently assessed, link the
       conformance credential that backs it via that claim's `evidence` rather than
-      restating the assessment — the conformance credential itself stays private.
+      restating the assessment. Say, per conformance credential, whether it may be
+      published as a Linked VP or must stay private (disclosed over WMP on request only).
   - id: bom
     prompt: "Manufacturer: which supplier products from your bill of materials go into this product — for each, the product ID, batch, quantity and the supplier's DID?"
     required: false
@@ -52,8 +54,9 @@ questions:
     required: false
     hint: >-
       Manufacturer: the supplier claims your own passport derives figures from. Buyer: the
-      manufacturer's product claims your purchase decision depends on. Each request is a
-      separate WMP exchange the holder has to consent to.
+      manufacturer's product claims your purchase decision depends on. A published
+      conformance credential is read from the holder's Linked VP with no consent needed;
+      a private one is a separate WMP exchange the holder has to consent to.
   - id: invoice_details
     prompt: "Supplier: invoice number, issue date, seller and buyer registration/VAT details, amount due, VAT amount and currency — and do you have the underlying invoice document to hash?"
     required: false
@@ -87,30 +90,35 @@ This workflow has three interactions between a supplier and a manufacturer, a fo
 between the manufacturer and a buyer, and an optional public check by the end owner:
 
 1. **Manufacturer verifies each supplier's DPP**, for every supplier product on its bill of
-   materials, then **requests the conformance credentials** it needs from the supplier over
-   WMP — they are private and are never published.
+   materials, then **fetches the conformance credentials** it needs — from the supplier's
+   Linked VP where the supplier published them, otherwise by requesting them over WMP.
 2. **Supplier issues an invoice** to the manufacturer over WMP.
 3. **Manufacturer issues its own DPP** and, for every supplier product, a **Digital
    Traceability Event** — a UNTP Make record — stating that the supplier product was used
    to make the manufacturer's product.
 4. **Buyer verifies the manufacturer's DPP and CC** — the DPP from its public Linked VP,
-   the CC requested from the manufacturer over WMP — and follows the Make records to the
-   supplier DPPs to learn what the product is made of.
+   the CC from the manufacturer's Linked VP if published, otherwise requested over WMP —
+   and follows the Make records to the supplier DPPs to learn what the product is made of.
 
-What is public and what is private is fixed:
+What is public and what is private:
 
 | Credential | Issued by | Held by | Public? | How it travels |
 |---|---|---|---|---|
 | Supplier DPP | Supplier (self-issued) | Supplier | Yes | Linked VP in the supplier's DID document |
-| Supplier CC | Assessment body | Supplier | No | WMP presentation to the manufacturer, on request |
+| Supplier CC | Assessment body | Supplier | Holder's choice | Linked VP in the supplier's DID document if public; otherwise WMP presentation to the manufacturer, on request |
 | Invoice | Supplier | Manufacturer | No | WMP offer |
 | Product DPP | Manufacturer (self-issued) | Manufacturer | Yes | Linked VP in the manufacturer's DID document |
 | Make record (DTE) | Manufacturer (self-issued) | Manufacturer | Yes | Linked VP in the manufacturer's DID document |
-| Manufacturer CC | Assessment body | Manufacturer | No | WMP presentation to the buyer, on request |
+| Manufacturer CC | Assessment body | Manufacturer | Holder's choice | Linked VP in the manufacturer's DID document if public; otherwise WMP presentation to the buyer, on request |
 
-Private credentials are only ever presented to the next party downstream: supplier CCs
-reach the manufacturer, the manufacturer's CC reaches the buyer. The buyer never gets a
-supplier's CC — what it learns about the components comes from their public DPPs.
+Whether a conformance credential is public is decided per credential by its holder. When
+it is published, fetch it from the Linked VP — it needs no WMP connection and no consent
+round-trip. Fall back to a WMP request only when it is not published.
+
+Private credentials are only ever presented to the next party downstream: private supplier
+CCs reach the manufacturer, a private manufacturer CC reaches the buyer. The buyer never
+gets a supplier's private CC — what it learns about the components comes from their public
+DPPs and any supplier CCs the supplier chose to publish.
 
 ## What NOOP changes
 
@@ -149,8 +157,9 @@ these exist.
   conformity assessment body before this workflow starts — to the supplier for its
   component, and to the manufacturer for its finished product. Neither issues one here;
   each only holds its own, and its DPP's `performanceClaim[*].evidence[].linkURL` points to
-  it by its `id`. It is private: never published, only presented over WMP to the party
-  directly downstream that asks (the manufacturer, or the buyer).
+  it by its `id`. Its holder decides whether it is public — published as a Linked VP next
+  to the DPP — or private, presented only over WMP to the party directly downstream that
+  asks (the manufacturer, or the buyer).
   Schema: <https://untp.unece.org/artefacts/schema/v0.7.0/dcc/ConformityCredential.json>.
 - **Invoice** — WEBUILD `eInvoice` attestation (`vct: eu.we-build:einvoice:1`), SD-JWT VC,
   issued by the supplier to the manufacturer, always over WMP. Its EN 16931 fields are
@@ -182,8 +191,10 @@ need entries.
 | Buyer | none | `dpp_conformance_credential_disclosure` |
 | Owner | none | none |
 
-Reading a published DPP or Make record (`VerifierLinkedVpVerify`) checks an
-already-published Linked VP, not an interactive request, so it needs no verifier entry.
+Reading a published DPP, Make record or conformance credential (`VerifierLinkedVpVerify`)
+checks an already-published Linked VP, not an interactive request, so it needs no verifier
+entry. The `dpp_conformance_credential_disclosure` entry is only used for the WMP fallback,
+when a conformance credential is not published.
 
 ### Issuer wallet — supplier and manufacturer
 
@@ -249,7 +260,8 @@ manufacturer's only the second and fourth.
 ### Verifier wallet — manufacturer and buyer
 
 One entry, targeting the conformance credential — the manufacturer uses it against its
-suppliers, the buyer against the manufacturer. Paths are prefixed `$.vc.…` because the
+suppliers, the buyer against the manufacturer, in both cases only for conformance
+credentials the holder has not published. Paths are prefixed `$.vc.…` because the
 credential arrives wrapped in a presentation.
 
 ```json
@@ -307,8 +319,8 @@ in `VerifierInitUrlCreate`:
 
 `HolderLinkedVpCreate` takes a presentation definition directly as a parameter; it is not
 read from `credentialVerifiers`. Paths have no `$.vc.` prefix because they address the
-unwrapped credential. Both definitions have only a type filter, so the whole credential is
-published — a DPP and a Make record are public in full.
+unwrapped credential. The DPP and Make record definitions have only a type filter, so the
+whole credential is published — a DPP and a Make record are public in full.
 
 ```json
 {
@@ -350,6 +362,35 @@ published — a DPP and a Make record are public in full.
 }
 ```
 
+The conformance credential definition is pinned to one credential by `id`, not just by
+type — a type-only filter would publish every conformance credential the wallet holds,
+including ones the holder meant to keep private. Publish one Linked VP per public
+conformance credential.
+
+```json
+{
+  "format": { "jwt_vc": { "alg": ["ES256"] }, "jwt_vp": { "alg": ["ES256"] } },
+  "id": "conformance_credential_public_presentation",
+  "input_descriptors": [
+    {
+      "id": "conformance_credential_public",
+      "constraints": {
+        "fields": [
+          {
+            "path": ["$.type"],
+            "filter": { "type": "array", "contains": { "const": "DigitalConformityCredential" } }
+          },
+          {
+            "path": ["$.id"],
+            "filter": { "type": "string", "const": "<PLACE THE CONFORMANCE CREDENTIAL id HERE!!!>" }
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
 ## Prerequisites — all roles
 
 - A wallet whose `config.trustFramework` is `NOOP` and whose `walletKeyIdentifier` is
@@ -359,8 +400,8 @@ published — a DPP and a Make record are public in full.
   by a channel other than the credentials themselves.
 - An established WMP connection between supplier and manufacturer, and between
   manufacturer and buyer (`WmpEntityList`; otherwise `WmpCreateNewInvitation` /
-  `WmpAcceptInvitation`). Every private exchange in this workflow — conformance credentials
-  and invoices — goes over WMP; there is no link or QR fallback.
+  `WmpAcceptInvitation`). Every private exchange in this workflow — unpublished conformance
+  credentials and invoices — goes over WMP; there is no link or QR fallback.
 
 ## Common procedure — self-issuing and publishing a credential
 
@@ -395,32 +436,52 @@ DPP, its Make records and the supplier DPPs they link to.
 4. Report the outcome naming the DID that signed it and where the expectation of that DID
    came from.
 
-## Common procedure — requesting a conformance credential over WMP
+## Common procedure — fetching a conformance credential
 
 Used by the manufacturer against each supplier, and by the buyer against the manufacturer.
 The holder's DPP must already be verified — it is where the `evidence` link comes from.
+Prefer the holder's Linked VP; use WMP only for a credential that is not published.
 
 1. For each claim in `conformance_claims`, note its `evidence[].linkURL` in the verified
-   DPP. Confirm with the user which ones to request rather than fetching every link
+   DPP. Confirm with the user which ones to fetch rather than fetching every link
    automatically.
-2. Request each one: `VerifierInitUrlCreate` against
-   `dpp_conformance_credential_disclosure` with `wmpEntityId` set to the holder and the
-   `evidence` filter from **Verifier wallet** as a `customQueries` fragment. Note the
-   returned state.
-3. Wait for `vp.verified` or `vp.invalid` on that state via `WalletNotifications` — do not
-   poll `WalletNotificationHistory`, which is for looking back, not waiting.
-4. Read the result with `WalletVerifiedCredentialsByState` and check, in this order:
-   1. The issuer DID equals the **assessment body's** pinned DID — not the holder's.
+2. **Linked VP first.** Check the Linked VPs in the holder's DID document
+   (`VerifierLinkedVpVerify` against the holder's DID) for a `DigitalConformityCredential`
+   whose `id` equals the `linkURL`. If one is there, it is the credential — go to step 4.
+   Do not open a WMP request for it.
+3. **WMP fallback**, only for a `linkURL` with no published match:
+   1. `VerifierInitUrlCreate` against `dpp_conformance_credential_disclosure` with
+      `wmpEntityId` set to the holder and the `evidence` filter from **Verifier wallet** as
+      a `customQueries` fragment. Note the returned state.
+   2. Wait for `vp.verified` or `vp.invalid` on that state via `WalletNotifications` — do
+      not poll `WalletNotificationHistory`, which is for looking back, not waiting.
+   3. Read the result with `WalletVerifiedCredentialsByState`.
+4. Check the credential, however it arrived, in this order:
+   1. The issuer DID equals the **assessment body's** pinned DID — not the holder's. For a
+      Linked VP, the holder's DID document only says who published it, not who assessed it.
    2. It is neither expired nor revoked.
    3. Its `id` equals the `linkURL` requested, and its assessed object matches the product
       and claim it is meant to back.
-5. Report which claims are now independently backed, by which assessment body, and which
-   were requested but not obtained.
+5. Report which claims are now independently backed, by which assessment body, whether each
+   credential came from a Linked VP or over WMP, and which were requested but not obtained.
+
+## Common procedure — publishing a conformance credential
+
+Used by the supplier and the manufacturer for any conformance credential the user wants
+public. Only do it on the user's explicit say-so, per credential — once published it is
+readable by anyone who resolves the DID, including parties beyond the next one downstream.
+
+1. Find the credential with `CredentialList` and note its `id`.
+2. Publish it with `HolderLinkedVpCreate`, using `conformance_credential_public_presentation`
+   from **Linked VP presentation definitions** with that `id` filled in.
+3. Check with `HolderLinkedVpList` that only the intended conformance credential was
+   published.
 
 ## Common procedure — presenting a conformance credential on request
 
 Used by the supplier when the manufacturer asks, and by the manufacturer when the buyer
-asks. Nothing to configure: a held credential needs no issuer-side setup to present.
+asks, for a conformance credential that is not published. Nothing to configure: a held
+credential needs no issuer-side setup to present.
 
 1. When the request arrives over WMP, call `WmpClientProcessRequest` to see which
    credential it asks for.
@@ -436,15 +497,18 @@ asks. Nothing to configure: a held credential needs no issuer-side setup to pres
    passport with an invented batch number is worse than no passport, because it will verify.
 2. For any claim backed by independent assessment, find the conformance credential already
    held for it (`CredentialList`) and use its `id` as that claim's `evidence[].linkURL`.
-   Link to it; don't restate it, and don't publish it.
+   Link to it; don't restate it in the DPP.
 3. Self-issue and publish against `component_batch_passport`, per **Common procedure —
    self-issuing and publishing a credential**.
-4. Give the user the wallet's DID to hand to the manufacturer out of band.
+4. Ask the user, per linked conformance credential, whether it may be public. Publish each
+   one they approve per **Common procedure — publishing a conformance credential**; the
+   rest stay private.
+5. Give the user the wallet's DID to hand to the manufacturer out of band.
 
 ### Presenting conformance credentials on request
 
-When the manufacturer asks, follow **Common procedure — presenting a conformance
-credential on request**.
+When the manufacturer asks over WMP for one that is not published, follow **Common
+procedure — presenting a conformance credential on request**.
 
 ### Issuing the invoice
 
@@ -462,17 +526,18 @@ credential on request**.
 
 ## Manufacturer
 
-### 1. Verifying supplier DPPs and requesting conformance credentials
+### 1. Verifying supplier DPPs and fetching conformance credentials
 
 Repeat for every supplier product in `bom`:
 
 1. Verify the supplier's published DPP per **Common procedure — verifying a published
    credential**, with that supplier's DID as `expected_issuer`.
-2. Request the conformance credentials behind it per **Common procedure — requesting a
-   conformance credential over WMP**, with the supplier as holder.
+2. Fetch the conformance credentials behind it per **Common procedure — fetching a
+   conformance credential**, with the supplier as holder.
 
 Report per supplier product: DPP verified or not, and which conformance credentials were
-obtained. If any fails, say which and what it blocks.
+obtained, and whether each was published or requested over WMP. If any fails, say which
+and what it blocks.
 If possible, create a credential trust graph describing the relationships between the DPPs
 and Conformance Credentials.
 
@@ -493,8 +558,9 @@ the invoice's issuer is that supplier's pinned DID.
 2. Reference each supplier DPP — and, where used, the supplier conformance credential
    behind a figure — so a downstream reader can follow the chain. For any claim about the
    finished product that the manufacturer's **own** conformance credential backs, find it
-   (`CredentialList`) and use its `id` as that claim's `evidence[].linkURL`. Conformance
-   credentials stay private: reference their `id`, never republish their content.
+   (`CredentialList`) and use its `id` as that claim's `evidence[].linkURL`. Reference
+   conformance credentials by `id`; never restate their content, and never republish a
+   supplier's conformance credential — whether it is public is the supplier's call.
 3. If a supplier DPP or a conformance credential it depends on is missing, expired or
    fails its issuer check, stop and report it. Do not issue a passport that silently omits
    it — a rolled-up figure with a hole in it is an estimate wearing a signature.
@@ -508,14 +574,19 @@ the invoice's issuer is that supplier's pinned DID.
      the product DPP from step 4.
    - `eventDate`, `activityType` and `madeAtFacility` from `make_event`; `id` a fresh URI;
      `name` describing the step (e.g. "Assembly of <product> using <component>").
-6. Report the product DPP and every Make record published, one line per supplier product.
-7. Give the user the wallet's DID to hand to buyers out of band.
+6. Ask the user whether the manufacturer's own conformance credential(s) linked in step 2
+   may be public. Publish each one they approve per **Common procedure — publishing a
+   conformance credential**.
+7. Report the product DPP, every Make record and every conformance credential published,
+   one line per supplier product.
+8. Give the user the wallet's DID to hand to buyers out of band.
 
 ### 4. Presenting its conformance credential to a buyer
 
-When a buyer asks over WMP, follow **Common procedure — presenting a conformance
-credential on request**. Present only the manufacturer's own conformance credential —
-never a supplier's, which was disclosed to the manufacturer alone.
+When a buyer asks over WMP for one that is not published, follow **Common procedure —
+presenting a conformance credential on request**. Present only the manufacturer's own
+conformance credential — never a supplier's private one, which was disclosed to the
+manufacturer alone.
 
 ## Buyer — verifying the product and what it is made of
 
@@ -526,9 +597,9 @@ connection — but usually none with the manufacturer's suppliers.
 
 1. Verify the manufacturer's product DPP per **Common procedure — verifying a published
    credential**, with the manufacturer's DID as `expected_issuer`.
-2. Request the manufacturer's conformance credential(s) per **Common procedure —
-   requesting a conformance credential over WMP**, with the manufacturer as holder. Pin the
-   assessment body's DID separately from the manufacturer's.
+2. Fetch the manufacturer's conformance credential(s) per **Common procedure — fetching a
+   conformance credential**, with the manufacturer as holder. Pin the assessment body's DID
+   separately from the manufacturer's.
 3. If either check fails, stop and report it — the composition trace below is only worth
    anything once the product itself is established.
 
@@ -545,19 +616,25 @@ connection — but usually none with the manufacturer's suppliers.
    (e.g. the supplier's own `did:web` domain), say so. If the only source is the
    manufacturer's signed Make record, say that instead: the supplier DPP is then trusted on
    the manufacturer's word, not independently.
-4. Supplier conformance credentials are not available to the buyer. Report supplier claims
-   as the supplier's self-declared or evidence-linked claims, not as assessed values the
-   buyer has seen.
+4. For each supplier claim's `evidence[].linkURL`, check the supplier's Linked VPs for a
+   published conformance credential with that `id`, and check it per step 4 of **Common
+   procedure — fetching a conformance credential**, with the assessment body's DID pinned
+   independently. Do not request supplier conformance credentials over WMP — the buyer has
+   no connection with the supplier, and private ones are for the manufacturer alone. Report
+   supplier claims with no published, checked credential as self-declared or
+   evidence-linked, not as assessed values the buyer has seen.
 
 ### 3. Reporting
 
 Answer in two parts:
 
 - **The product** — what it is, who signed its DPP, which claims are backed by a
-  conformance credential the buyer received and checked, and by which assessment body.
+  conformance credential the buyer received and checked, by which assessment body, and
+  whether it came from a Linked VP or over WMP.
 - **What it is made of** — one line per component: supplier product, batch and quantity
-  from the Make record, whether its DPP verified, which DID signed it, and how that DID was
-  pinned. Name any Make record that links to a missing or failing supplier DPP.
+  from the Make record, whether its DPP verified, which DID signed it, how that DID was
+  pinned, and which of its claims are backed by a published conformance credential the
+  buyer checked. Name any Make record that links to a missing or failing supplier DPP.
 - If possible, create a credential trust graph describing the relationships between the DPPs,
   Make Records and Conformance Credentials.
 
@@ -570,8 +647,10 @@ The owner has no prior relationship and sees only public data.
 2. Verify the product DPP and its Make records per **Common procedure — verifying a
    published credential**.
 3. Each Make record links to a supplier DPP, which is public and can be verified the same
-   way — but only against a supplier DID the owner can pin independently. Conformance
-   credentials are private; report that claims backed by them were not checked by the
-   owner, only referenced.
-4. Answer plainly: what the product is, who signed for it, which components went into it,
+   way — but only against a supplier DID the owner can pin independently.
+4. For each `evidence[].linkURL` in these DPPs, look for a published conformance credential
+   with that `id` in the holder's Linked VPs and check it per step 4 of **Common procedure
+   — fetching a conformance credential**. Private ones are not available to the owner;
+   report that claims backed by them were not checked, only referenced.
+5. Answer plainly: what the product is, who signed for it, which components went into it,
    and which of those statements this check actually established.

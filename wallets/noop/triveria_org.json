@@ -13,7 +13,6 @@
         "credentialType": "urn:triveria.io:id:1",
         "disclosableClaims": [
           "$.familyName",
-          "$.currentAddress",
           "$.firstName",
           "$.companyRole",
           "$.companyName",

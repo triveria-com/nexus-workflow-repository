@@ -112,6 +112,43 @@ export async function loadWalletTemplates(errors) {
 }
 
 /**
+ * Checks that every form item is complete and every display item renders a form
+ * item: a display key without one is a field the issuance form never fills in.
+ * Returns the claims the form defines, or undefined when the form is malformed.
+ */
+function checkFormAndDisplay(where, form, display, errors) {
+  if (!Array.isArray(form?.groups)) {
+    errors.push(`${where}: "subjectDefinition.form" must have a "groups" list`);
+    return undefined;
+  }
+
+  const claims = new Set();
+  for (const group of form.groups) {
+    for (const item of Array.isArray(group?.items) ? group.items : []) {
+      const missing = ["key", "name", "dataType", "format"].filter((k) => !nonEmptyString(item?.[k]));
+      if (missing.length > 0) {
+        errors.push(`${where}: form item "${item?.key ?? "(no key)"}" has no ${missing.join(", ")}`);
+      }
+      if (nonEmptyString(item?.key)) claims.add(item.key);
+    }
+  }
+
+  if (!Array.isArray(display?.columns)) {
+    errors.push(`${where}: "subjectDefinition.display" must have a "columns" list`);
+    return claims;
+  }
+  for (const column of display.columns) {
+    for (const item of (Array.isArray(column?.displayItems) ? column.displayItems : []).flat()) {
+      if (!claims.has(item?.key)) {
+        errors.push(`${where}: display item "${item?.key}" has no form item`);
+      }
+    }
+  }
+
+  return claims;
+}
+
+/**
  * Credential templates live at credentials/<slug>.json, where the slug is
  * credentialSlug(credentialTypeId).
  */
@@ -146,6 +183,7 @@ export async function loadCredentialTemplates(errors) {
 
     // The form and the display are JSON documents serialized into strings.
     const definition = template.subjectDefinition;
+    const parsed = {};
     if (!isObject(definition)) {
       errors.push(`${where}: "subjectDefinition" must be an object`);
     } else {
@@ -155,12 +193,13 @@ export async function loadCredentialTemplates(errors) {
           continue;
         }
         try {
-          JSON.parse(definition[key]);
+          parsed[key] = JSON.parse(definition[key]);
         } catch (err) {
           errors.push(`${where}: "subjectDefinition.${key}" is not valid JSON: ${err.message}`);
         }
       }
     }
+    const claims = parsed.form && parsed.display ? checkFormAndDisplay(where, parsed.form, parsed.display, errors) : undefined;
 
     if (!nonEmptyString(template.credentialTypeId)) continue;
 
@@ -175,7 +214,7 @@ export async function loadCredentialTemplates(errors) {
     }
     bySlug.set(slug, template.credentialTypeId);
 
-    templates.push({ credentialTypeId: template.credentialTypeId, path: `credentials/${rel}`, template });
+    templates.push({ credentialTypeId: template.credentialTypeId, path: `credentials/${rel}`, template, claims });
   }
 
   return templates;
@@ -225,12 +264,61 @@ function resolveCredentialType(type, knownIds) {
 }
 
 /**
+ * The credential subject claim a JSONPath like `$.firstName` addresses. Nested
+ * paths (a VCDM `$.vc.credentialSubject.…`) and `$.vct` / `$.id`, which carry
+ * the type and the holder rather than a subject field, are not checked.
+ */
+function claimOf(path) {
+  if (typeof path !== "string" || !path.startsWith("$.")) return undefined;
+  const claim = path.slice(2);
+  return claim && !claim.includes(".") && !claim.includes("[") && claim !== "vct" && claim !== "id" ? claim : undefined;
+}
+
+/**
+ * The claims a verifier requests, per requested credential: each Presentation
+ * Exchange input descriptor that pins `$.vct` with a `const`, and each DCQL
+ * credential with `vct_values`. A verifier can request several credentials, so
+ * every claim is checked against the type it is requested from.
+ */
+function verifierClaims(verifier) {
+  const requested = [];
+  for (const descriptor of verifier.presentationDefinition?.input_descriptors ?? []) {
+    const fields = descriptor?.constraints?.fields ?? [];
+    const vct = fields.find((f) => Array.isArray(f?.path) && f.path.includes("$.vct"))?.filter?.const;
+    if (typeof vct === "string") {
+      requested.push({ type: vct, claims: fields.map((f) => claimOf(f?.path?.[0])).filter(Boolean) });
+    }
+  }
+  for (const credential of verifier.dcqlQuery?.credentials ?? []) {
+    const vct = credential?.meta?.vct_values?.[0];
+    if (typeof vct !== "string") continue;
+    const claims = (credential.claims ?? [])
+      .filter((c) => Array.isArray(c?.path) && c.path.length === 1)
+      .map((c) => claimOf(`$.${c.path[0]}`));
+    requested.push({ type: vct, claims: claims.filter(Boolean) });
+  }
+  return requested;
+}
+
+/**
  * Cross-template checks: a wallet template that names a credential type without
- * a credential template, or an issuer gated on a verifier it does not define,
- * imports cleanly into tw-web-app and then cannot issue or verify.
+ * a credential template, an issuer gated on a verifier it does not define, or a
+ * claim the credential type does not have, imports cleanly into tw-web-app and
+ * then cannot issue or verify it.
  */
 function checkReferences(wallets, credentials, errors) {
   const knownIds = [...credentials.map((c) => c.credentialTypeId), ...BUILT_IN_CREDENTIAL_TYPES];
+  const claimsByType = new Map(credentials.filter((c) => c.claims).map((c) => [c.credentialTypeId, c.claims]));
+
+  const checkClaims = (path, source, type, claims) => {
+    const known = claimsByType.get(type);
+    if (!known) return;
+    for (const claim of new Set(claims)) {
+      if (!known.has(claim)) {
+        errors.push(`${path}: ${source} uses claim "${claim}", which the "${type}" credential template does not define`);
+      }
+    }
+  };
 
   for (const { path, template } of wallets) {
     const issuers = Array.isArray(template.config.credentialIssuers) ? template.config.credentialIssuers : [];
@@ -242,6 +330,9 @@ function checkReferences(wallets, credentials, errors) {
       if (typeof type === "string" && !knownIds.includes(type)) {
         errors.push(`${path}: issuer "${issuer.id}" issues "${type}", which has no credential template`);
       }
+      const disclosable = Array.isArray(issuer?.disclosableClaims) ? issuer.disclosableClaims : [];
+      const mapped = Object.values(issuer?.issuerConfiguration?.mapping ?? {});
+      checkClaims(path, `issuer "${issuer?.id}"`, type, [...disclosable, ...mapped].map(claimOf).filter(Boolean));
 
       // An issuer with a custom authentication provider takes its data from the
       // provider, so its credentialVerifierId names no verifier of the wallet.
@@ -255,6 +346,9 @@ function checkReferences(wallets, credentials, errors) {
       const type = verifierCredentialType(verifier);
       if (type !== undefined && !resolveCredentialType(type, knownIds)) {
         errors.push(`${path}: verifier "${verifier.id}" requests "${type}", which has no credential template`);
+      }
+      for (const { type: requestedType, claims } of verifierClaims(verifier)) {
+        checkClaims(path, `verifier "${verifier?.id}"`, resolveCredentialType(requestedType, knownIds), claims);
       }
     }
   }

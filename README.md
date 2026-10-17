@@ -86,6 +86,14 @@ shows up later, at issuance or verification:
 - an issuer gated on a presentation (`issuerConfiguration.credentialVerifierId`) names a
   verifier the same template defines. Issuers with a custom authentication provider
   (`authnProviderUrl`) are exempt: their data comes from the provider.
+- every claim a wallet template uses exists in the credential template's form: the claims
+  an issuer discloses (`disclosableClaims`) or maps into the credential (the values of
+  `issuerConfiguration.mapping`), and the claims a verifier requests from a credential it
+  pins by `$.vct` or by DCQL `vct_values`. Each requested credential is checked against its
+  own type. Nested JSONPaths, such as VCDM `$.vc.credentialSubject.…`, are not checked.
+
+Each credential template's form must also be complete: every form item has a `key`,
+`name`, `dataType` and `format`, and every `display` item renders a form item.
 
 Whether the wallet service accepts a wallet config is not checked here. twt's `twt liveness` check in the dev and prod
 pipelines creates wallets from `noop/triveria_org` and `noop/triveria_holder` and catches

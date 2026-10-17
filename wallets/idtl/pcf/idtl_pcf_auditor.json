@@ -1,6 +1,7 @@
 {
   "name": "PCF Auditor",
   "description": "Issues Product Carbon Footprint certificates to use case participants.",
+  "summary": "PCF auditor on the IDunion trust list (IDTL) framework. It issues PCF Conformity Certificates (PcfConformityCertificate, jwt_vc_vcdm) to Product Carbon Footprint use-case participants through three issuers: a direct issuance queue, a VPDriven issuer that copies the organization name from a presented EBWOID, and a CredentialRequirements issuer gated on an EBWOID. It verifies Trust List Pass, Product Carbon Footprint with conformity certificate, and EBWOID credentials.",
   "config": {
     "walletKeyIdentifier": "did",
     "trustFramework": "IDTL",

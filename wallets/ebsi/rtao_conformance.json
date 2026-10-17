@@ -1,6 +1,7 @@
 {
   "name": "EBSI RootTAO [conformance]",
   "description": "This identity is able to request the VerifiableAuthorisationToOnboard from the EBSI Issuer Mock using which it can onboard to the EBSI conformance network as Root TAO.",
+  "summary": "EBSI Root TAO (Trusted Accreditation Organization) identity for the EBSI conformance network. It requests the VerifiableAuthorisationToOnboard from the EBSI issuer mock and uses it to onboard to the conformance network as Root TAO. It configures no credential issuers or verifiers.",
   "config": {
     "trustFramework": "EBSI",
     "EBSI": {

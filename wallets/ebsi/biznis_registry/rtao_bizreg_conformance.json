@@ -1,6 +1,7 @@
 {
   "name": "RTAO BizReg [conformance]",
   "description": "Biznis Registry Issuer with Root TAO EBSI capabilities. This identity is able to request the VerifiableAuthorisationToOnboard from the EBSI Issuer Mock using which it can onboard to the EBSI conformance network as Root TAO.",
+  "summary": "Business registry issuer with Root TAO (Trusted Accreditation Organization) capabilities on the EBSI conformance network. It requests a VerifiableAuthorisationToOnboard from the EBSI issuer mock to onboard as Root TAO. It issues Organizational Digital ID credentials (VerifiableCredential,VerifiableAttestation,OrganizationalDigitalIdentifier, jwt_vc_vcdm) through two issuers: manual entry through the issuance queue, and a CredentialRequirements issuer that requires an identity presentation first. It verifies Organizational Digital ID, Power of Attorney and Passport (full disclosure) credentials.",
   "config": {
     "trustFramework": "EBSI",
     "EBSI": {

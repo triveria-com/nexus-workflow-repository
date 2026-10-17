@@ -1,6 +1,7 @@
 {
   "name": "Triveria Organization",
   "description": "This identity can issue, revoke and verify company badges of type urn:triveria.io:id:1",
+  "summary": "Triveria organization wallet on the NOOP trust framework. It issues, revokes and verifies Triveria ID company badges (urn:triveria.io:id:1, sd_jwt_vc), with two verifiers: one for the company name and role, and one for the holder's identity (name and email). The twt liveness check uses it as its issuer and verifier, with noop/triveria_holder as the holder.",
   "config": {
     "trustFramework": "NOOP",
     "credentialIssuers": [

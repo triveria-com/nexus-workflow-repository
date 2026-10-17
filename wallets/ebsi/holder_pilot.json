@@ -1,6 +1,7 @@
 {
   "name": "Holder Wallet [conformance]",
   "description": "A Personal Wallet instance with holder only capabilities configured for the EBSI conformance network",
+  "summary": "Holder-only personal wallet on the EBSI pilot network, with a did:ebsi identifier. It configures no issuers or verifiers: it receives, holds and presents credentials issued on the EBSI trust framework.",
   "config": {
     "trustFramework": "EBSI",
     "EBSI": {

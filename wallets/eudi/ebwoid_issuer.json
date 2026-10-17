@@ -1,6 +1,7 @@
 {
   "name": "EBWOID Issuer",
   "description": "Issue and verify European Business Wallet Owner Identification Data (EBWOID) credentials as Pub-EAA or QEAA",
+  "summary": "Wallet on the EUDI trust framework (ETSI list of trusted lists, x509 key identifier) that issues and verifies European Business Wallet Owner Identification Data (EBWOID) credentials of type uri:eu.ebw.oid.1 in sd_jwt_vc format, as Pub-EAA or QEAA.",
   "config": {
     "trustFramework": "EUDI",
     "walletKeyIdentifier": "x509",

@@ -1,6 +1,7 @@
 {
   "name": "Triveria Holder",
   "description": "This identity can hold credentials issued on the NOOP framework",
+  "summary": "Holder wallet on the NOOP trust framework that holds credentials issued on NOOP, such as the Triveria ID company badge. It configures no issuers, and verifies the company name and role of a Triveria ID (urn:triveria.io:id:1). The twt liveness check uses it as its holder.",
   "config": {
     "trustFramework": "NOOP",
     "credentialIssuers": [],

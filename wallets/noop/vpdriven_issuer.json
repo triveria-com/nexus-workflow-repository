@@ -1,0 +1,58 @@
+{
+  "name": "VPDriven Issuer",
+  "description": "Issues a Membership Card whose claims are pre-filled from a presented National ID",
+  "summary": "Minimal NOOP wallet illustrating a VPDriven issuer: the claims of the issued credential are pre-filled from a credential the holder presents during issuance. Here a Membership Card (jwt_vc_vcdm) is issued with firstName and familyName copied from a presented National ID, via issuerConfiguration.mapping (source path in the presentation to target path in the new credential). The referenced verifier defines which credential is requested. Works only with the in-time authorized issuance flow.",
+  "config": {
+    "trustFramework": "NOOP",
+    "walletKeyIdentifier": "did",
+    "credentialIssuers": [
+      {
+        "id": "membership_card",
+        "name": "Membership Card",
+        "credentialFormat": "jwt_vc_vcdm",
+        "credentialType": "VerifiableCredential,MembershipCard",
+        "credentialIssuer": "VPDriven",
+        "issuerConfiguration": {
+          "credentialVerifierId": "national_id_disclosure",
+          "mapping": {
+            "$[0].firstName": "$.firstName",
+            "$[0].familyName": "$.familyName"
+          }
+        }
+      }
+    ],
+    "credentialVerifiers": [
+      {
+        "id": "national_id_disclosure",
+        "name": "National ID",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "national_id_presentation",
+          "input_descriptors": [
+            {
+              "id": "national_id",
+              "constraints": {
+                "fields": [
+                  {
+                    "name": "National ID",
+                    "filter": { "const": "urn:national_id", "type": "string" },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "First Name", "path": ["$.firstName"] },
+                  { "name": "Family Name", "path": ["$.familyName"] }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    }
+  }
+}

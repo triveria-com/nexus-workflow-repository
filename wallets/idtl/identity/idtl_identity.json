@@ -1,6 +1,7 @@
 {
   "name": "Organization ID Issuer",
   "description": "Issue and verify legal person identifier credentials",
+  "summary": "Organization ID issuer on the IDunion trust list (IDTL) framework. It issues Organization Identifier credentials (urn:idunion.org:oid:1) directly and through a CredentialRequirements issuer gated on a presented passport, as well as EBWOID (uri:eu.ebw.oid.1) and Passport (urn:idunion.org:passport_copy:1) credentials, all in sd_jwt_vc format. It verifies EBWOID, Organization Identifier, Passport (name only) and National ID credentials.",
   "localWalletData": {
     "credentialRequirements": {
       "oid_with_requirements": {

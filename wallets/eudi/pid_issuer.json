@@ -1,0 +1,39 @@
+{
+  "name": "EUDI PID Issuer",
+  "description": "Issues Person Identification Data (PID) credentials for the EUDI framework",
+  "summary": "Wallet on the EUDI trust framework (ETSI list of trusted lists, x509 key identifier) that issues Person Identification Data (PID) credentials of type eu.europa.ec.eudi.pid.1 in sd_jwt_vc format. Because the EUDI Reference Wallet does not support the OpenID authorization extension, the issuer uses authorization none and issues via pre-authorized credential offers. PID claims such as family_name, given_name, birth_date, age_over_18 and nationality are selectively disclosable.",
+  "config": {
+    "trustFramework": "EUDI",
+    "walletKeyIdentifier": "x509",
+    "EUDI": {
+      "etsiLotlUrl": "https://webuild-consortium.github.io/wp4-trust-group/list_of_trusted_lists.xml",
+      "trustedLotlCertificates": [
+        "MIIBsjCCAVmgAwIBAgITPvPF+X8GhViy0ozkLPO7+1YNITAKBggqhkjOPQQDAjAwMQswCQYDVQQGEwJFVTEhMB8GA1UECgwYV1A0IFRydXN0IFJlZ2lzdHJ5IEdyb3VwMB4XDTI2MDMyMDEzMjgyNVoXDTI5MDMxOTEzMjgyNVowMDELMAkGA1UEBhMCRVUxITAfBgNVBAoMGFdQNCBUcnVzdCBSZWdpc3RyeSBHcm91cDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJoI9e3meFI++UhQAG3clpKkbSTL2YIuhGZ/4C4kbPjjEgbL8hKywQUlCN6TXUipD8SMjceZ3PnB52qZgAK9Qh2jUjBQMA4GA1UdDwEB/wQEAwIGwDARBgNVHSUECjAIBgYEAJE3AwAwDAYDVR0TAQH/BAIwADAdBgNVHQ4EFgQUh78bCQwjCQICwxtn6FHEQAktn7YwCgYIKoZIzj0EAwIDRwAwRAIgfbkN22wQzj8kfoAgvYk1u86n/jHDB1FEXJA7aH4VuRECIHulljT498YiqnCgRU7UlRXSF/MpC02r1V1DjAue5lYF"
+      ]
+    },
+    "credentialIssuers": [
+      {
+        "id": "pid",
+        "name": "Person Identification Data",
+        "signingKeyIdentifier": "x509",
+        "authorization": "none",
+        "credentialFormat": "sd_jwt_vc",
+        "credentialIssuer": "IssuanceQueue",
+        "credentialType": "eu.europa.ec.eudi.pid.1",
+        "disclosableClaims": [
+          "$.family_name",
+          "$.given_name",
+          "$.birth_date",
+          "$.age_over_18",
+          "$.nationality",
+          "$.issuing_country",
+          "$.issuing_authority"
+        ]
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    }
+  }
+}

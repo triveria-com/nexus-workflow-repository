@@ -1,6 +1,7 @@
 {
   "name": "EUDI Holder",
   "description": "Participates in the EU Digital Identity ecosystem as a credential holder. Receives an x509 certificate from an onboarding authority and can present credentials to verifiers.",
+  "summary": "Holder wallet in the EU Digital Identity (EUDI) ecosystem, using an x509 key identifier and the ETSI list of trusted lists. It receives an x509 certificate from an onboarding authority (the eudi/onboarding-authority template) and presents credentials to verifiers. It configures no issuers or verifiers.",
   "config": {
     "trustFramework": "EUDI",
     "walletKeyIdentifier": "x509",

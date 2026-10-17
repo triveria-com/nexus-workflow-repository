@@ -90,6 +90,9 @@ export async function loadWalletTemplates(errors) {
     if (template.description !== undefined && typeof template.description !== "string") {
       errors.push(`${where}: "description" must be a string`);
     }
+    if (!nonEmptyString(template.summary)) {
+      errors.push(`${where}: "summary" must be a non-empty string`);
+    }
     if (!isObject(template.config)) {
       errors.push(`${where}: "config" must be an object`);
       continue;
@@ -136,6 +139,9 @@ export async function loadCredentialTemplates(errors) {
     }
     if (template.description !== undefined && typeof template.description !== "string") {
       errors.push(`${where}: "description" must be a string`);
+    }
+    if (!nonEmptyString(template.summary)) {
+      errors.push(`${where}: "summary" must be a non-empty string`);
     }
 
     // The form and the display are JSON documents serialized into strings.

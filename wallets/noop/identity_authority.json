@@ -1,6 +1,7 @@
 {
   "name": "Identity Authority",
   "description": "Issue and verify legal and natural person identifier credentials",
+  "summary": "Identity authority on the NOOP trust framework that issues and verifies legal and natural person identifiers: Organization Identifier credentials (urn:idunion.org:oid:1) directly and through a CredentialRequirements issuer gated on a presented passport, Passport (urn:idunion.org:passport_copy:1) and National ID (urn:idunion.org:nid_copy:1) credentials, all in sd_jwt_vc format. It verifies Organization Identifier, Passport (name only) and National ID credentials.",
   "localWalletData": {
     "credentialRequirements": {
       "oid_with_requirements": {

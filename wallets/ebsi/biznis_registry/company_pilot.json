@@ -1,6 +1,7 @@
 {
   "name": "Company",
   "description": "A Business Wallet instance for a company that can hold and present Power of Attorney and Organization Digital ID credentials",
+  "summary": "Business Wallet for a company on the EBSI pilot network. It holds and presents Organizational Digital ID and Power of Attorney credentials. It issues Power of Attorney credentials (VerifiableCredential,VerifiableAuthorisation,PowerOfAttorney, jwt_vc_vcdm) through two issuers: manual entry through the issuance queue, and a VPDriven issuer that pre-fills the representative's name and date of birth from a presented National ID. It verifies Organizational Digital ID, Power of Attorney, Passport (full disclosure) and National ID credentials.",
   "config": {
     "trustFramework": "EBSI",
     "EBSI": {

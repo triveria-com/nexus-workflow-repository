@@ -34,13 +34,19 @@ from here in [#1](https://github.com/triveria-com/nexus-workflow-repository/issu
 | Wallet | `wallets/<framework>/…/<slug>.json` | its path without `.json`, e.g. `noop/triveria_org` |
 | Credential | `credentials/<slug>.json` | its `credentialTypeId`, e.g. `urn:triveria.io:id:1` |
 
-- **Wallet templates** have a `name`, an optional `description`, and the wallet `config`
-  sent to the wallet create call. Some also carry `localWalletData`, which is used by
+- **Wallet templates** have a `name`, an optional `description`, a `summary`, and the
+  wallet `config` sent to the wallet create call. Some also carry `localWalletData`, which is used by
   tw-web-app only. The top-level folder is the trust framework of `config.trustFramework`,
   lowercased (`ebsi`, `eudi`, `idtl`, `noop`), and may have subfolders.
-- **Credential templates** have a `credentialTypeId`, `name`, `format`, optional
-  `description`, `schema` and display hints, and a `subjectDefinition` whose `form` and
+- **Credential templates** have a `credentialTypeId`, `name`, `format`, a `summary`,
+  optional `description`, `schema` and display hints, and a `subjectDefinition` whose `form` and
   `display` are JSON documents serialized into strings.
+- **`summary`** is a few sentences on what the template is for. For a wallet: its trust
+  framework and network, and what it issues and verifies, with the credential types and
+  issuance modes. For a credential: its type, format, schema, form groups and fields, and
+  which wallet templates issue it. The nexus AI assistant searches templates by their
+  summary (nexus-ai-backend ingests them into its knowledge base), so a vague summary is a
+  template the assistant can't find. `description` is the short line shown in tw-web-app.
 - **Credential file names** are derived from the type id: lowercased, with every run of
   characters other than `a-z` and `0-9` replaced by `-`. So `urn:triveria.io:id:1` is
   `credentials/urn-triveria-io-id-1.json`. Type ids contain `:` and `,`, which are not
@@ -70,8 +76,9 @@ specific commit, build its path from the id or the type id and fetch it from
 
 Templates are checked for structure: valid JSON, the required properties, the trust
 framework folder and the credential file name. Whether the wallet service accepts a
-wallet config is not checked here. Once twt reads from here, its `twt liveness` check
-in the dev and prod pipelines will create wallets from the NOOP templates and catch that.
+wallet config is not checked here. twt's `twt liveness` check in the dev and prod
+pipelines creates wallets from `noop/triveria_org` and `noop/triveria_holder` and catches
+that for those two.
 
 ## Local preview
 

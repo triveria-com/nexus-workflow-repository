@@ -1,6 +1,7 @@
 {
   "name": "RTAO BizReg",
   "description": "Biznis Registry Issuer with Root TAO EBSI capabilities. This identity needs the VerifiableAuthorisationToOnboard credential in order to onboard as Root TAO to the EBSI pilot network.",
+  "summary": "Business registry issuer with Root TAO (Trusted Accreditation Organization) capabilities on the EBSI pilot network. It needs a VerifiableAuthorisationToOnboard credential to onboard as Root TAO. It issues Organizational Digital ID credentials (VerifiableCredential,VerifiableAttestation,OrganizationalDigitalIdentifier, jwt_vc_vcdm) through two issuers: manual entry through the issuance queue, and a CredentialRequirements issuer that requires an identity presentation first. It verifies Organizational Digital ID, Power of Attorney and Passport (full disclosure) credentials.",
   "config": {
     "trustFramework": "EBSI",
     "EBSI": {

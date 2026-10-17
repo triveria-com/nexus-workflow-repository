@@ -1,6 +1,7 @@
 {
   "name": "Trust List Owner",
   "description": "Issues onboarding credentials for Trusted Issuers (PCF Auditors)",
+  "summary": "Trust list owner on the IDunion trust list (IDTL) framework. It issues the IDunion Trust List Pass accreditation (VerifiableCredential,VerifiableAccreditation,IDunionTrustListPass, jwt_vc_vcdm) that onboards trusted issuers such as PCF auditors. It verifies Trust List Pass, EBWOID, Organization Identifier, Passport and National ID credentials.",
   "config": {
     "walletKeyIdentifier": "did",
     "trustFramework": "IDTL",

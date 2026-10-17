@@ -1,0 +1,42 @@
+{
+  "name": "EUDI PID Verifier",
+  "description": "Verifies Person Identification Data (PID) credentials from an EUDI wallet using a DCQL query",
+  "summary": "Wallet on the EUDI trust framework (ETSI list of trusted lists, x509 key identifier) that verifies Person Identification Data (PID) credentials of type eu.europa.ec.eudi.pid.1 presented by an EUDI wallet. Verification uses a DCQL query with the dc+sd-jwt format, the query language to use with the EUDI Reference Wallet, requesting selective disclosure of family_name, given_name and age_over_18 and verifying credential expiration.",
+  "config": {
+    "trustFramework": "EUDI",
+    "walletKeyIdentifier": "x509",
+    "EUDI": {
+      "etsiLotlUrl": "https://webuild-consortium.github.io/wp4-trust-group/list_of_trusted_lists.xml",
+      "trustedLotlCertificates": [
+        "MIIBsjCCAVmgAwIBAgITPvPF+X8GhViy0ozkLPO7+1YNITAKBggqhkjOPQQDAjAwMQswCQYDVQQGEwJFVTEhMB8GA1UECgwYV1A0IFRydXN0IFJlZ2lzdHJ5IEdyb3VwMB4XDTI2MDMyMDEzMjgyNVoXDTI5MDMxOTEzMjgyNVowMDELMAkGA1UEBhMCRVUxITAfBgNVBAoMGFdQNCBUcnVzdCBSZWdpc3RyeSBHcm91cDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJoI9e3meFI++UhQAG3clpKkbSTL2YIuhGZ/4C4kbPjjEgbL8hKywQUlCN6TXUipD8SMjceZ3PnB52qZgAK9Qh2jUjBQMA4GA1UdDwEB/wQEAwIGwDARBgNVHSUECjAIBgYEAJE3AwAwDAYDVR0TAQH/BAIwADAdBgNVHQ4EFgQUh78bCQwjCQICwxtn6FHEQAktn7YwCgYIKoZIzj0EAwIDRwAwRAIgfbkN22wQzj8kfoAgvYk1u86n/jHDB1FEXJA7aH4VuRECIHulljT498YiqnCgRU7UlRXSF/MpC02r1V1DjAue5lYF"
+      ]
+    },
+    "credentialVerifiers": [
+      {
+        "id": "pid",
+        "name": "Person Identification Data",
+        "dcqlQuery": {
+          "credentials": [
+            {
+              "id": "pid",
+              "format": "dc+sd-jwt",
+              "meta": {
+                "vct_values": ["eu.europa.ec.eudi.pid.1"]
+              },
+              "claims": [
+                { "id": "family_name", "path": ["family_name"] },
+                { "id": "given_name", "path": ["given_name"] },
+                { "id": "age_over_18", "path": ["age_over_18"] }
+              ]
+            }
+          ]
+        },
+        "toVerify": ["verifyExpiration"]
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    }
+  }
+}

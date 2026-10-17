@@ -1,5 +1,6 @@
 {
   "name": "Demo University [conformance]",
+  "summary": "Demo University wallet on the EBSI conformance network. It issues Education Diploma credentials (urn:edu-diploma:1, sd_jwt_vc) through two issuers: a direct issuance queue, and a VPDriven issuer that pre-fills the awardee's name and date of birth from a presented identity credential. It verifies diplomas with only the achievement disclosed or together with the awardee's name, and National ID credentials.",
   "config": {
     "trustFramework": "EBSI",
     "EBSI": {

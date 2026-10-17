@@ -1,0 +1,55 @@
+{
+  "name": "Company Employee ID manager",
+  "description": "This identity can issue, revoke and verify company badges of type urn:company:id:1",
+  "summary": "NOOP wallet that issues Employee ID credentials (urn:company:id:1, sd_jwt_vc) with a custom PKI: the wallet and its credential issuer are configured with an x509 key identifier. Its verifier requests a subset of the credential claims (firstName, familyName, companyName, companyRole) with a DCQL query. The wallet has no x509 certificate by default, one has to be imported before it can issue.",
+  "config": {
+    "trustFramework": "NOOP",
+    "credentialIssuers": [
+      {
+        "id": "triveria_company_id",
+        "name": "Triveria Company ID",
+        "credentialFormat": "sd_jwt_vc",
+        "credentialIssuer": "IssuanceQueue",
+        "credentialType": "urn:company:id:1",
+        "disclosableClaims": [
+          "$.familyName",
+          "$.currentAddress",
+          "$.firstName",
+          "$.companyRole",
+          "$.companyName",
+          "$.email",
+          "$.photo"
+        ],
+        "signingKeyIdentifier": "x509"
+      }
+    ],
+    "credentialVerifiers": [
+      {
+        "id": "id_company_role",
+        "name": "Company Role",
+        "dcqlQuery": {
+          "credentials": [
+            {
+              "id": "company_id",
+              "format": "dc+sd-jwt",
+              "meta": {
+                "vct_values": ["urn:company:id:1"]
+              },
+              "claims": [
+                { "path": ["firstName"] },
+                { "path": ["familyName"] },
+                { "path": ["companyName"] },
+                { "path": ["companyRole"] }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    },
+    "walletKeyIdentifier": "x509"
+  }
+}

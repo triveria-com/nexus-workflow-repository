@@ -1,0 +1,50 @@
+{
+  "name": "VPDriven Issuer (DCQL verifier)",
+  "description": "Issues a Membership Card pre-filled from a National ID requested with a DCQL query",
+  "summary": "NOOP wallet illustrating a VPDriven issuer whose referenced verifier requests the presented credential with a DCQL query (dc+sd-jwt) instead of a DIF Presentation Exchange definition. A Membership Card (jwt_vc_vcdm) is issued with firstName and familyName copied, via issuerConfiguration.mapping, from a National ID the holder presents. Use DCQL when interfacing with the EUDI wallet. Works only with the in-time authorized issuance flow.",
+  "config": {
+    "trustFramework": "NOOP",
+    "walletKeyIdentifier": "did",
+    "credentialIssuers": [
+      {
+        "id": "membership_card",
+        "name": "Membership Card",
+        "credentialFormat": "jwt_vc_vcdm",
+        "credentialType": "VerifiableCredential,MembershipCard",
+        "credentialIssuer": "VPDriven",
+        "issuerConfiguration": {
+          "credentialVerifierId": "national_id_disclosure",
+          "mapping": {
+            "$[0].firstName": "$.firstName",
+            "$[0].familyName": "$.familyName"
+          }
+        }
+      }
+    ],
+    "credentialVerifiers": [
+      {
+        "id": "national_id_disclosure",
+        "name": "National ID",
+        "dcqlQuery": {
+          "credentials": [
+            {
+              "id": "national_id",
+              "format": "dc+sd-jwt",
+              "meta": {
+                "vct_values": ["urn:national_id"]
+              },
+              "claims": [
+                { "path": ["firstName"] },
+                { "path": ["familyName"] }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    }
+  }
+}

@@ -1,6 +1,7 @@
 {
   "name": "EBSI RootTAO [pilot]",
   "description": "This identity needs the VerifiableAuthorisationToOnboard credential in order to onboard as Root TAO to the EBSI pilot network.",
+  "summary": "EBSI Root TAO (Trusted Accreditation Organization) identity for the EBSI pilot network. It needs the VerifiableAuthorisationToOnboard credential to onboard to the pilot network as Root TAO. It configures no credential issuers or verifiers.",
   "config": {
     "trustFramework": "EBSI",
     "EBSI": {

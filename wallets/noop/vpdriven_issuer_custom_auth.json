@@ -1,0 +1,32 @@
+{
+  "name": "VPDriven Issuer (custom authentication provider)",
+  "description": "Issues a Power of Attorney with claims mapped from a custom authentication provider's data",
+  "summary": "NOOP wallet illustrating a VPDriven issuer that sources claims from a custom authentication provider or authentic source (authorization openidCustom, authnProviderUrl) instead of a live credential presentation. A Power of Attorney credential (jwt_vc_vcdm) is issued with firstName, familyName and dateOfBirth mapped, via issuerConfiguration.mapping, from the authentication service's returned data array. Use oauthCustom instead of openidCustom when the flow must be compatible with the EUDI reference wallet.",
+  "config": {
+    "trustFramework": "NOOP",
+    "walletKeyIdentifier": "did",
+    "credentialIssuers": [
+      {
+        "id": "poa",
+        "name": "Power of Attorney",
+        "credentialFormat": "jwt_vc_vcdm",
+        "credentialType": "VerifiableCredential,PowerOfAttorney",
+        "credentialIssuer": "VPDriven",
+        "authorization": "openidCustom",
+        "authnProviderUrl": "https://my.authn.provider.com/handle_request",
+        "issuerConfiguration": {
+          "credentialVerifierId": "national_id_identity_disclosure",
+          "mapping": {
+            "$[0].given_name": "$.firstName",
+            "$[0].family_name": "$.familyName",
+            "$[2].date_of_birth": "$.dateOfBirth"
+          }
+        }
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    }
+  }
+}

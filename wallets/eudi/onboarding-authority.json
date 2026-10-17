@@ -1,6 +1,7 @@
 {
   "name": "EUDI Onboarding Authority",
   "description": "Issues x509 certificates to EUDI wallet holders. When a holder submits a CSR, this wallet signs it and returns the certificate PEM for the holder to import.",
+  "summary": "EUDI onboarding authority that issues x509 certificates to EUDI wallet holders: it signs a holder's certificate signing request (CSR) and returns the certificate PEM for the holder to import. Its single issuer issues the x509_certificate type. Uses an x509 key identifier and the ETSI list of trusted lists.",
   "config": {
     "trustFramework": "EUDI",
     "walletKeyIdentifier": "x509",

@@ -1,6 +1,7 @@
 {
   "name": "Personal with Verifier",
   "description": "A Personal Wallet instance with holder and verifier capabilities.",
+  "summary": "Personal Wallet with holder and verifier capabilities on the EBSI pilot network. It configures no credential issuers, and defines verifiers for Organizational Digital ID, Power of Attorney, Passport (full disclosure) and National ID credentials.",
   "config": {
     "trustFramework": "EBSI",
     "EBSI": {

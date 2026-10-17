@@ -1,0 +1,52 @@
+{
+  "name": "EBWOID Issuer",
+  "description": "Issue and verify European Business Wallet Owner Identification Data (EBWOID) credentials as Pub-EAA or QEAA",
+  "config": {
+    "walletKeyIdentifier": "did",
+    "trustFramework": "IDTL",
+    "credentialIssuers": [
+      {
+        "id": "ebwoid",
+        "name": "EBW Owner Identification Data",
+        "description": "Issue EBWOID credential identifying an economic operator or public sector body",
+        "credentialFormat": "sd_jwt_vc",
+        "credentialIssuer": "IssuanceQueue",
+        "credentialType": "uri:eu.ebw.oid.1"
+      }
+    ],
+    "credentialVerifiers": [
+      {
+        "id": "ebwoid",
+        "name": "EBW Owner Identification Data",
+        "description": "Verify EBWOID credential of an economic operator or public sector body",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "ebwoid_presentation",
+          "input_descriptors": [
+            {
+              "id": "ebwoid",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": { "const": "uri:eu.ebw.oid.1", "type": "string" },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "Business Identifier (EUID)", "path": ["$.id"] },
+                  { "name": "Legal Name", "path": ["$.name"] },
+                  { "name": "Issuing Country", "path": ["$.issuing_country"] }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    }
+  }
+}

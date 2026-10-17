@@ -1,0 +1,192 @@
+{
+  "name": "Organization ID Issuer",
+  "description": "Issue and verify legal person identifier credentials",
+  "localWalletData": {
+    "credentialRequirements": {
+      "oid_with_requirements": {
+        "description": "This Organization ID credential will be issued only after a successful presentation of a passport credential issued to a person with name specified below.",
+        "verifiedFields": [
+          { "path": "$.firstName", "title": "First Name" },
+          { "path": "$.familyName", "title": "Family Name" }
+        ]
+      }
+    }
+  },
+  "config": {
+    "walletKeyIdentifier": "did",
+    "trustFramework": "IDTL",
+    "credentialIssuers": [
+      {
+        "id": "oid_with_requirements",
+        "name": "OID with Requirements",
+        "description": "Issue Legal Person Identifier with requirement to present Passport credential",
+        "credentialFormat": "sd_jwt_vc",
+        "credentialIssuer": "CredentialRequirements",
+        "issuerConfiguration": {
+          "credentialVerifierId": "passport_full_name_disclosure"
+        },
+        "credentialType": "urn:idunion.org:oid:1",
+        "disclosableClaims": ["$.organizationName", "$.tradeName", "$.x509Certificate"]
+      },
+      {
+        "id": "oid",
+        "name": "Organization Identifier",
+        "description": "Issue Legal Person Identifier",
+        "credentialFormat": "sd_jwt_vc",
+        "credentialIssuer": "IssuanceQueue",
+        "credentialType": "urn:idunion.org:oid:1",
+        "disclosableClaims": ["$.organizationName", "$.tradeName", "$.x509Certificate"]
+      },
+      {
+        "id": "ebwoid",
+        "name": "EBW Owner Identification Data",
+        "description": "Issue EBWOID credential identifying an economic operator or public sector body",
+        "credentialFormat": "sd_jwt_vc",
+        "credentialIssuer": "IssuanceQueue",
+        "credentialType": "uri:eu.ebw.oid.1"
+      },
+      {
+        "id": "passport",
+        "name": "Passport",
+        "description": "Issue travel document",
+        "credentialFormat": "sd_jwt_vc",
+        "credentialIssuer": "IssuanceQueue",
+        "credentialType": "urn:idunion.org:passport_copy:1",
+        "disclosableClaims": [
+          "$.firstName",
+          "$.familyName",
+          "$.dateOfBirth",
+          "$.ageOver18",
+          "$.passportNumber",
+          "$.personalIdentifier",
+          "$.gender",
+          "$.photo",
+          "$.nationality"
+        ]
+      }
+    ],
+    "credentialVerifiers": [
+      {
+        "id": "ebwoid",
+        "name": "EBW Owner Identification Data",
+        "description": "Verify EBWOID credential of an economic operator or public sector body",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "ebwoid_presentation",
+          "input_descriptors": [
+            {
+              "id": "ebwoid",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": { "const": "uri:eu.ebw.oid.1", "type": "string" },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "Business Identifier (EUID)", "path": ["$.id"] },
+                  { "name": "Legal Name", "path": ["$.name"] },
+                  { "name": "Issuing Country", "path": ["$.issuing_country"] }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "oid",
+        "name": "Organization ID",
+        "description": "Verify Legal Person Identifier of an legal entity.",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "oid_presentation",
+          "input_descriptors": [
+            {
+              "id": "oid",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": { "const": "urn:idunion.org:oid:1", "type": "string" },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "Legal Name", "path": ["$.organizationName"] },
+                  { "name": "Legal Form", "path": ["$.tradeName"] }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "passport_full_name_disclosure",
+        "name": "Verify Passport",
+        "description": "Verify a digital passport requesting full disclosure.",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "passport_full_name_disclosure_presentation",
+          "input_descriptors": [
+            {
+              "id": "id_Passport",
+              "constraints": {
+                "fields": [
+                  {
+                    "name": "Passport",
+                    "filter": { "const": "urn:idunion.org:passport_copy:1", "type": "string" },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "First Name", "path": ["$.firstName"] },
+                  { "name": "Family Name", "path": ["$.familyName"] }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "national_id_identity_disclosure",
+        "name": "National ID",
+        "description": "Verify digital National ID",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "national_id_identity_disclosure_presentation",
+          "input_descriptors": [
+            {
+              "id": "national_id",
+              "constraints": {
+                "fields": [
+                  {
+                    "name": "National ID",
+                    "filter": {
+                      "const": "urn:idunion.org:nid_copy:1",
+                      "type": "string"
+                    },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "Photo", "path": ["$.photo"] },
+                  { "name": "First Name", "path": ["$.firstName"] },
+                  { "name": "Family Name", "path": ["$.familyName"] },
+                  { "name": "Date of Birth", "path": ["$.dateOfBirth"] },
+                  { "name": "Nationality", "path": ["$.nationality"] }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    }
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "name": "Triveria Organization",
+  "description": "This identity can issue, revoke and verify company badges of type urn:triveria.io:id:1",
+  "config": {
+    "trustFramework": "NOOP",
+    "credentialIssuers": [
+      {
+        "id": "triveria_company_id",
+        "name": "Triveria Company ID",
+        "credentialFormat": "sd_jwt_vc",
+        "credentialIssuer": "IssuanceQueue",
+        "credentialType": "urn:triveria.io:id:1",
+        "disclosableClaims": [
+          "$.familyName",
+          "$.currentAddress",
+          "$.firstName",
+          "$.companyRole",
+          "$.companyName",
+          "$.email",
+          "$.photo"
+        ]
+      }
+    ],
+    "credentialVerifiers": [
+      {
+        "id": "id_triveria_company_role",
+        "name": "Triveria Company Role",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": {
+              "alg": [
+                "ES256"
+              ]
+            },
+            "jwt_vp": {
+              "alg": [
+                "ES256"
+              ]
+            }
+          },
+          "id": "id_triveria_anonymous_presentation",
+          "input_descriptors": [
+            {
+              "id": "id_triveria_VerifiableTriveriaId",
+              "constraints": {
+                "fields": [
+                  {
+                    "name": "Triveria ID",
+                    "filter": {
+                      "const": "urn:triveria.io:id:1",
+                      "type": "string"
+                    },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "Photo", "path": ["$.photo"] },
+                  { "name": "Company Name", "path": ["$.companyName"] },
+                  { "name": "Company Role", "path": ["$.companyRole"] },
+                  { "name": "Photo", "path": ["$.photo"] }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "id_triveria_identity",
+        "name": "Triveria Identity",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": {
+              "alg": [
+                "ES256"
+              ]
+            },
+            "jwt_vp": {
+              "alg": [
+                "ES256"
+              ]
+            }
+          },
+          "id": "id_triveria_identity_presentation",
+          "input_descriptors": [
+            {
+              "id": "id_triveria_id",
+              "constraints": {
+                "fields": [
+                  {
+                    "name": "Triveria ID",
+                    "filter": {
+                      "const": "urn:triveria.io:id:1",
+                      "type": "string"
+                    },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "Photo", "path": ["$.photo"] },
+                  { "name": "Given Name", "path": ["$.firstName"] },
+                  { "name": "Family Name", "path": ["$.familyName"] },
+                  { "name": "Email", "path": ["$.email"], "filter": { "type": "string", "pattern": "\\@triveria\\.io$" } },
+                  { "name": "Photo", "path": ["$.photo"] }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    },
+    "walletKeyIdentifier": "did"
+  }
+}

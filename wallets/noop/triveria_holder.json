@@ -1,0 +1,55 @@
+{
+  "name": "Triveria Holder",
+  "description": "This identity can hold credentials issued on the NOOP framework",
+  "config": {
+    "trustFramework": "NOOP",
+    "credentialIssuers": [],
+    "credentialVerifiers": [
+      {
+        "id": "id_triveria_company_role",
+        "name": "Triveria Company Role",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": {
+              "alg": [
+                "ES256"
+              ]
+            },
+            "jwt_vp": {
+              "alg": [
+                "ES256"
+              ]
+            }
+          },
+          "id": "id_triveria_anonymous_presentation",
+          "input_descriptors": [
+            {
+              "id": "id_triveria_VerifiableTriveriaId",
+              "constraints": {
+                "fields": [
+                  {
+                    "name": "Triveria ID",
+                    "filter": {
+                      "const": "urn:triveria.io:id:1",
+                      "type": "string"
+                    },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "Photo", "path": ["$.photo"] },
+                  { "name": "Company Name", "path": ["$.companyName"] },
+                  { "name": "Company Role", "path": ["$.companyRole"] },
+                  { "name": "Photo", "path": ["$.photo"] }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    },
+    "walletKeyIdentifier": "did"
+  }
+}

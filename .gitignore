@@ -1,3 +1,5 @@
 node_modules/
 /workflows/data.json
+/wallets/index.json
+/credentials/index.json
 .idea

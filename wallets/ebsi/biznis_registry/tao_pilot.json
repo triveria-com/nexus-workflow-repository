@@ -1,0 +1,355 @@
+{
+  "name": "Trusted Accreditation Organization",
+  "config": {
+    "trustFramework": "EBSI",
+    "EBSI": {
+      "isOnboarded": false,
+      "configuration": {
+        "conformanceClientId": "",
+        "authorization": "https://api-pilot.ebsi.eu/authorisation/v4",
+        "didRegistry": "https://api-pilot.ebsi.eu/did-registry/v5",
+        "mainSchema": "https://api-pilot.ebsi.eu/trusted-schemas-registry/v3/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM",
+        "trustedIssuersRegistry": "https://api-pilot.ebsi.eu/trusted-issuers-registry/v5",
+        "trustedSchemasRegistry": "https://api-pilot.ebsi.eu/trusted-schemas-registry/v3",
+        "statusListSchema": ""
+      }
+    },
+    "credentialIssuers": [
+      {
+        "id": "bizreg_odi_manual_entry",
+        "name": "ODI (pre-fill all data)",
+        "credentialFormat": "jwt_vc_vcdm",
+        "credentialIssuer": "IssuanceQueue",
+        "credentialType": "VerifiableCredential,VerifiableAttestation,OrganizationalDigitalIdentifier"
+      },
+      {
+        "id": "bizreg_odi_passport_identity_required",
+        "name": "ODI (identity required)",
+        "credentialFormat": "jwt_vc_vcdm",
+        "credentialIssuer": "CredentialRequirements",
+        "issuerConfiguration": {
+          "credentialVerifierId": "passport_or_id_identity_disclosure"
+        },
+        "credentialType": "VerifiableCredential,VerifiableAttestation,OrganizationalDigitalIdentifier"
+      }
+    ],
+    "credentialVerifiers": [
+      {
+        "id": "bizreg_odi",
+        "name": "Organizational Digital ID (ODI)",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": {
+              "alg": [
+                "ES256"
+              ]
+            },
+            "jwt_vp": {
+              "alg": [
+                "ES256"
+              ]
+            }
+          },
+          "id": "bizreg_odi_presentation",
+          "input_descriptors": [
+            {
+              "id": "bizreg_odi_credential_type",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": {
+                      "contains": {
+                        "const": "OrganizationalDigitalIdentifier"
+                      },
+                      "type": "array"
+                    },
+                    "path": [
+                      "$.vc.type"
+                    ]
+                  },
+                  {
+                    "name": "ID",
+                    "path": [
+                      "$.vc.credentialSubject.id"
+                    ]
+                  },
+                  {
+                    "name": "Legal Name",
+                    "path": [
+                      "$.vc.credentialSubject.legalName"
+                    ]
+                  },
+                  {
+                    "name": "Legal Form",
+                    "path": [
+                      "$.vc.credentialSubject.legalForm"
+                    ]
+                  },
+                  {
+                    "name": "Issuing Authority Name",
+                    "path": [
+                      "$.vc.credentialSubject.issuingAuthorityName"
+                    ]
+                  },
+                  {
+                    "name": "Issuing Country",
+                    "path": [
+                      "$.vc.credentialSubject.issuingCountry"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "bizreg_poa",
+        "name": "Power of Attorney",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": {
+              "alg": [
+                "ES256"
+              ]
+            },
+            "jwt_vp": {
+              "alg": [
+                "ES256"
+              ]
+            }
+          },
+          "id": "bizreg_poa_presentation",
+          "input_descriptors": [
+            {
+              "id": "bizreg_poa_credential_type",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": {
+                      "contains": {
+                        "const": "PowerOfAttorney"
+                      },
+                      "type": "array"
+                    },
+                    "path": [
+                      "$.vc.type"
+                    ]
+                  },
+                  {
+                    "name": "ID",
+                    "path": [
+                      "$.vc.credentialSubject.id"
+                    ]
+                  },
+                  {
+                    "name": "Scope",
+                    "path": [
+                      "$.vc.credentialSubject.poaScope"
+                    ]
+                  },
+                  {
+                    "name": "Type",
+                    "path": [
+                      "$.vc.credentialSubject.poaType"
+                    ]
+                  },
+                  {
+                    "name": "First Name",
+                    "path": [
+                      "$.vc.credentialSubject.firstName"
+                    ]
+                  },
+                  {
+                    "name": "Family Name",
+                    "path": [
+                      "$.vc.credentialSubject.familyName"
+                    ]
+                  },
+                  {
+                    "name": "Date of Birth",
+                    "path": [
+                      "$.vc.credentialSubject.dateOfBirth"
+                    ]
+                  },
+                  {
+                    "name": "Place of Birth",
+                    "path": [
+                      "$.vc.credentialSubject.placeOfBirth"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "passport_full_disclosure",
+        "name": "Passport Full Disclosure",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": {
+              "alg": [
+                "ES256"
+              ]
+            },
+            "jwt_vp": {
+              "alg": [
+                "ES256"
+              ]
+            }
+          },
+          "id": "passport_full_disclosure_presentation",
+          "input_descriptors": [
+            {
+              "id": "id_Passport",
+              "constraints": {
+                "fields": [
+                  {
+                    "name": "Passport",
+                    "filter": {
+                      "const": "urn:idunion.org:passport_copy:1",
+                      "type": "string"
+                    },
+                    "path": [
+                      "$.vct"
+                    ]
+                  },
+                  {
+                    "name": "Photo",
+                    "path": [
+                      "$.photo"
+                    ]
+                  },
+                  {
+                    "name": "First Name",
+                    "path": [
+                      "$.firstName"
+                    ]
+                  },
+                  {
+                    "name": "Family Name",
+                    "path": [
+                      "$.familyName"
+                    ]
+                  },
+                  {
+                    "name": "Date of Birth",
+                    "path": [
+                      "$.dateOfBirth"
+                    ]
+                  },
+                  {
+                    "name": "Passport Number",
+                    "path": [
+                      "$.passportNumber"
+                    ]
+                  },
+                  {
+                    "name": "Personal Identifier",
+                    "path": [
+                      "$.personalIdentifier"
+                    ]
+                  },
+                  {
+                    "name": "Gender",
+                    "path": [
+                      "$.gender"
+                    ]
+                  },
+                  {
+                    "name": "Nationality",
+                    "path": [
+                      "$.nationality"
+                    ]
+                  },
+                  {
+                    "name": "Age Over 18",
+                    "path": [
+                      "$.ageOver18"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "national_id_identity_disclosure",
+        "name": "National ID",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": {
+              "alg": [
+                "ES256"
+              ]
+            },
+            "jwt_vp": {
+              "alg": [
+                "ES256"
+              ]
+            }
+          },
+          "id": "national_id_identity_disclosure_presentation",
+          "input_descriptors": [
+            {
+              "id": "national_id",
+              "constraints": {
+                "fields": [
+                  {
+                    "name": "National ID",
+                    "filter": {
+                      "const": "urn:idunion.org:nid_copy:1",
+                      "type": "string"
+                    },
+                    "path": [
+                      "$.vct"
+                    ]
+                  },
+                  {
+                    "name": "Photo",
+                    "path": [
+                      "$.photo"
+                    ]
+                  },
+                  {
+                    "name": "First Name",
+                    "path": [
+                      "$.firstName"
+                    ]
+                  },
+                  {
+                    "name": "Family Name",
+                    "path": [
+                      "$.familyName"
+                    ]
+                  },
+                  {
+                    "name": "Date of Birth",
+                    "path": [
+                      "$.dateOfBirth"
+                    ]
+                  },
+                  {
+                    "name": "Nationality",
+                    "path": [
+                      "$.nationality"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    },
+    "walletKeyIdentifier": "did",
+    "legalEntity": true
+  }
+}

@@ -1,9 +1,7 @@
 {
-  "id": "idtl_pcf_participant",
   "name": "PCF Participant",
   "description": "May get certified to self-issue PCF certificates or verify them",
   "summary": "PCF participant on the IDunion trust list (IDTL) framework. It issues ProductCarbonFootprint credentials (jwt_vc_vcdm, aligned with the WBCSD PACT Tech Spec) and may get certified by a PCF auditor to self-issue them. It verifies Product Carbon Footprint credentials with their conformity certificate, optionally together with an EBWOID, and EBWOID credentials.",
-  "credentialRequirements": null,
   "config": {
     "walletKeyIdentifier": "did",
     "trustFramework": "IDTL",

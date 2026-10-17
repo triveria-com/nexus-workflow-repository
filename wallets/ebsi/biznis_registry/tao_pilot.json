@@ -1,5 +1,6 @@
 {
   "name": "Trusted Accreditation Organization",
+  "description": "Biznis Registry wallet with Trusted Accreditation Organization capabilities on the EBSI pilot network. It issues Organizational Digital ID credentials.",
   "summary": "Business registry wallet with Trusted Accreditation Organization (TAO) capabilities on the EBSI pilot network. It issues Organizational Digital ID credentials (VerifiableCredential,VerifiableAttestation,OrganizationalDigitalIdentifier, jwt_vc_vcdm) through two issuers: manual entry through the issuance queue, and a CredentialRequirements issuer that requires an identity presentation first. It verifies Organizational Digital ID, Power of Attorney, Passport (full disclosure) and National ID credentials.",
   "config": {
     "trustFramework": "EBSI",
@@ -29,7 +30,7 @@
         "credentialFormat": "jwt_vc_vcdm",
         "credentialIssuer": "CredentialRequirements",
         "issuerConfiguration": {
-          "credentialVerifierId": "passport_or_id_identity_disclosure"
+          "credentialVerifierId": "passport_full_disclosure"
         },
         "credentialType": "VerifiableCredential,VerifiableAttestation,OrganizationalDigitalIdentifier"
       }

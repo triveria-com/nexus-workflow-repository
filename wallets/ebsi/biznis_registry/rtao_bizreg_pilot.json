@@ -30,7 +30,7 @@
         "credentialFormat": "jwt_vc_vcdm",
         "credentialIssuer": "CredentialRequirements",
         "issuerConfiguration": {
-          "credentialVerifierId": "passport_or_id_identity_disclosure"
+          "credentialVerifierId": "passport_full_disclosure"
         },
         "credentialType": "VerifiableCredential,VerifiableAttestation,OrganizationalDigitalIdentifier"
       }

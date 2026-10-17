@@ -34,12 +34,12 @@ from here in [#1](https://github.com/triveria-com/nexus-workflow-repository/issu
 | Wallet | `wallets/<framework>/…/<slug>.json` | its path without `.json`, e.g. `noop/triveria_org` |
 | Credential | `credentials/<slug>.json` | its `credentialTypeId`, e.g. `urn:triveria.io:id:1` |
 
-- **Wallet templates** have a `name`, an optional `description`, a `summary`, and the
-  wallet `config` sent to the wallet create call. Some also carry `localWalletData`, which is used by
+- **Wallet templates** have a `name`, a `description`, a `summary`, and the wallet
+  `config` sent to the wallet create call. Some also carry `localWalletData`, which is used by
   tw-web-app only. The top-level folder is the trust framework of `config.trustFramework`,
   lowercased (`ebsi`, `eudi`, `idtl`, `noop`), and may have subfolders.
-- **Credential templates** have a `credentialTypeId`, `name`, `format`, a `summary`,
-  optional `description`, `schema` and display hints, and a `subjectDefinition` whose `form` and
+- **Credential templates** have a `credentialTypeId`, `name`, `format`, `description`,
+  a `summary`, an optional `schema` and display hints, and a `subjectDefinition` whose `form` and
   `display` are JSON documents serialized into strings.
 - **`summary`** is a few sentences on what the template is for. For a wallet: its trust
   framework and network, and what it issues and verifies, with the credential types and
@@ -75,8 +75,19 @@ specific commit, build its path from the id or the type id and fetch it from
    refuses to publish an invalid template.
 
 Templates are checked for structure: valid JSON, the required properties, the trust
-framework folder and the credential file name. Whether the wallet service accepts a
-wallet config is not checked here. twt's `twt liveness` check in the dev and prod
+framework folder and the credential file name. References between templates are checked
+too, because the wallet service accepts a config with broken ones, so the problem only
+shows up later, at issuance or verification:
+
+- every credential type a wallet template issues or verifies has a credential template
+  (`x509_certificate` excepted, tw-web-app defines it in code). A verifier's type is
+  inferred the way tw-web-app infers it, so a JWT VC verifier that names only the last
+  segment of a type chain resolves to the full chain.
+- an issuer gated on a presentation (`issuerConfiguration.credentialVerifierId`) names a
+  verifier the same template defines. Issuers with a custom authentication provider
+  (`authnProviderUrl`) are exempt: their data comes from the provider.
+
+Whether the wallet service accepts a wallet config is not checked here. twt's `twt liveness` check in the dev and prod
 pipelines creates wallets from `noop/triveria_org` and `noop/triveria_holder` and catches
 that for those two.
 

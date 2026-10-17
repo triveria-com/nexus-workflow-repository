@@ -31,7 +31,7 @@
               "id": "national_id",
               "format": "dc+sd-jwt",
               "meta": {
-                "vct_values": ["urn:national_id"]
+                "vct_values": ["urn:idunion.org:nid_copy:1"]
               },
               "claims": [
                 { "path": ["firstName"] },

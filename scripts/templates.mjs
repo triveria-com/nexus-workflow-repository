@@ -87,8 +87,8 @@ export async function loadWalletTemplates(errors) {
     if (!nonEmptyString(template.name)) {
       errors.push(`${where}: "name" must be a non-empty string`);
     }
-    if (template.description !== undefined && typeof template.description !== "string") {
-      errors.push(`${where}: "description" must be a string`);
+    if (!nonEmptyString(template.description)) {
+      errors.push(`${where}: "description" must be a non-empty string`);
     }
     if (!nonEmptyString(template.summary)) {
       errors.push(`${where}: "summary" must be a non-empty string`);
@@ -137,8 +137,8 @@ export async function loadCredentialTemplates(errors) {
         errors.push(`${where}: "${key}" must be a non-empty string`);
       }
     }
-    if (template.description !== undefined && typeof template.description !== "string") {
-      errors.push(`${where}: "description" must be a string`);
+    if (!nonEmptyString(template.description)) {
+      errors.push(`${where}: "description" must be a non-empty string`);
     }
     if (!nonEmptyString(template.summary)) {
       errors.push(`${where}: "summary" must be a non-empty string`);
@@ -181,11 +181,91 @@ export async function loadCredentialTemplates(errors) {
   return templates;
 }
 
+// Credential types defined in tw-web-app's code rather than as a template here.
+const BUILT_IN_CREDENTIAL_TYPES = ["x509_certificate"];
+
+const TYPE_ARRAY_PATHS = ["$.vc.type", "$.type"];
+
+/**
+ * The credential type a verifier requests, inferred the way tw-web-app infers it
+ * (src/types/verifierDefinitionHelpers.ts): the first `vct_values` of a DCQL
+ * query, else the first Presentation Exchange field that pins `$.vct` with a
+ * `const`, or a type array (`$.vc.type`, `$.type`) with `contains.const`.
+ */
+function verifierCredentialType(verifier) {
+  for (const credential of verifier.dcqlQuery?.credentials ?? []) {
+    const vct = credential?.meta?.vct_values?.[0];
+    if (typeof vct === "string") return vct;
+  }
+
+  for (const descriptor of verifier.presentationDefinition?.input_descriptors ?? []) {
+    for (const field of descriptor?.constraints?.fields ?? []) {
+      const path = Array.isArray(field?.path) ? field.path : [];
+      const filter = field?.filter ?? {};
+      if (path.includes("$.vct") && typeof filter.const === "string") return filter.const;
+      if (TYPE_ARRAY_PATHS.some((p) => path.includes(p)) && typeof filter.contains?.const === "string") {
+        return filter.contains.const;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Resolves a type to a known credential type id the way tw-web-app does: an exact
+ * match, else the single id whose type chain ends in it (a JWT VC verifier
+ * names only the last segment of a chain like
+ * `VerifiableCredential,VerifiableAttestation,OrganizationalDigitalIdentifier`).
+ */
+function resolveCredentialType(type, knownIds) {
+  if (knownIds.includes(type)) return type;
+  const chainMatches = knownIds.filter((id) => id.split(",").pop().trim() === type);
+  return chainMatches.length === 1 ? chainMatches[0] : undefined;
+}
+
+/**
+ * Cross-template checks: a wallet template that names a credential type without
+ * a credential template, or an issuer gated on a verifier it does not define,
+ * imports cleanly into tw-web-app and then cannot issue or verify.
+ */
+function checkReferences(wallets, credentials, errors) {
+  const knownIds = [...credentials.map((c) => c.credentialTypeId), ...BUILT_IN_CREDENTIAL_TYPES];
+
+  for (const { path, template } of wallets) {
+    const issuers = Array.isArray(template.config.credentialIssuers) ? template.config.credentialIssuers : [];
+    const verifiers = Array.isArray(template.config.credentialVerifiers) ? template.config.credentialVerifiers : [];
+    const verifierIds = new Set(verifiers.map((v) => v?.id));
+
+    for (const issuer of issuers) {
+      const type = issuer?.credentialType;
+      if (typeof type === "string" && !knownIds.includes(type)) {
+        errors.push(`${path}: issuer "${issuer.id}" issues "${type}", which has no credential template`);
+      }
+
+      // An issuer with a custom authentication provider takes its data from the
+      // provider, so its credentialVerifierId names no verifier of the wallet.
+      const verifierId = issuer?.issuerConfiguration?.credentialVerifierId;
+      if (typeof verifierId === "string" && !issuer.authnProviderUrl && !verifierIds.has(verifierId)) {
+        errors.push(`${path}: issuer "${issuer.id}" requires verifier "${verifierId}", which the template does not define`);
+      }
+    }
+
+    for (const verifier of verifiers) {
+      const type = verifierCredentialType(verifier);
+      if (type !== undefined && !resolveCredentialType(type, knownIds)) {
+        errors.push(`${path}: verifier "${verifier.id}" requests "${type}", which has no credential template`);
+      }
+    }
+  }
+}
+
 /** Loads all templates and throws listing every problem found. */
 export async function loadTemplates() {
   const errors = [];
   const wallets = await loadWalletTemplates(errors);
   const credentials = await loadCredentialTemplates(errors);
+  checkReferences(wallets, credentials, errors);
 
   if (errors.length > 0) {
     const err = new Error(`${errors.length} invalid template(s):\n  ${errors.join("\n  ")}`);

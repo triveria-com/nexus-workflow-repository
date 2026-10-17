@@ -1,0 +1,154 @@
+{
+  "id": "idtl_pcf_participant",
+  "name": "PCF Participant",
+  "description": "May get certified to self-issue PCF certificates or verify them",
+  "credentialRequirements": null,
+  "config": {
+    "walletKeyIdentifier": "did",
+    "trustFramework": "IDTL",
+    "credentialIssuers": [
+      {
+        "id": "idtl_pcf",
+        "name": "Product Carbon Footprint",
+        "description": "Issue Product Carbon Footprint Certificate",
+        "credentialFormat": "jwt_vc_vcdm",
+        "credentialIssuer": "IssuanceQueue",
+        "credentialType": "ProductCarbonFootprint"
+      }
+    ],
+    "credentialVerifiers": [
+      {
+        "id": "idtl_pcf_iso",
+        "name": "PCF with Conformity Certificate",
+        "description": "Verify PCF Declaration presented with the Conformity Certificate",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "idtl_pcf_presentation",
+          "input_descriptors": [
+            {
+              "id": "idtl_pcf_credential_type",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": { "contains": { "const": "ProductCarbonFootprint" }, "type": "array" },
+                    "path": ["$.vc.type"]
+                  },
+                  { "name": "ID", "path": ["$.vc.credentialSubject.id"] },
+                  { "name": "Legal Name", "path": ["$.vc.credentialSubject.organizationName"] },
+                  { "name": "Carbon Footprint", "path": ["$.vc.credentialSubject.carbonFootprint"] }
+                ]
+              }
+            },
+            {
+              "id": "idtl_iso_credential_type",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": { "contains": { "const": "PcfConformityCertificate" }, "type": "array" },
+                    "path": ["$.vc.type"]
+                  },
+                  { "name": "ID", "path": ["$.vc.credentialSubject.id"] },
+                  { "name": "Legal Name", "path": ["$.vc.credentialSubject.organizationName"] },
+                  { "name": "ISO Norm", "path": ["$.vc.credentialSubject.isoNorm"] },
+                  { "name": "Product Category", "path": ["$.vc.credentialSubject.productCategory"] }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "idtl_pcf_iso_ebwoid",
+        "name": "PCF and Conformity with Organization ID",
+        "description": "Verify PCF Declaration presented with the Conformity Certificate and the company Organization ID",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "idtl_pcf_presentation",
+          "input_descriptors": [
+            {
+              "id": "idtl_pcf_credential_type",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": { "contains": { "const": "ProductCarbonFootprint" }, "type": "array" },
+                    "path": ["$.vc.type"]
+                  },
+                  { "name": "ID", "path": ["$.vc.credentialSubject.id"] },
+                  { "name": "Legal Name", "path": ["$.vc.credentialSubject.organizationName"] },
+                  { "name": "Carbon Footprint", "path": ["$.vc.credentialSubject.carbonFootprint"] }
+                ]
+              }
+            },
+            {
+              "id": "idtl_iso_credential_type",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": { "contains": { "const": "PcfConformityCertificate" }, "type": "array" },
+                    "path": ["$.vc.type"]
+                  },
+                  { "name": "ID", "path": ["$.vc.credentialSubject.id"] },
+                  { "name": "Legal Name", "path": ["$.vc.credentialSubject.organizationName"] },
+                  { "name": "ISO Norm", "path": ["$.vc.credentialSubject.isoNorm"] },
+                  { "name": "Product Category", "path": ["$.vc.credentialSubject.productCategory"] }
+                ]
+              }
+            },
+            {
+              "id": "ebwoid",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": { "const": "uri:eu.ebw.oid.1", "type": "string" },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "Business Identifier (EUID)", "path": ["$.id"] },
+                  { "name": "Legal Name", "path": ["$.name"] },
+                  { "name": "Issuing Country", "path": ["$.issuing_country"] }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "ebwoid",
+        "name": "EBW Owner Identification Data",
+        "description": "Verify EBWOID credential of an economic operator or public sector body",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "ebwoid_presentation",
+          "input_descriptors": [
+            {
+              "id": "ebwoid",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": { "const": "uri:eu.ebw.oid.1", "type": "string" },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "Business Identifier (EUID)", "path": ["$.id"] },
+                  { "name": "Legal Name", "path": ["$.name"] },
+                  { "name": "Issuing Country", "path": ["$.issuing_country"] }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    }
+  }
+}

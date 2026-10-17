@@ -1,0 +1,24 @@
+{
+  "name": "Personal [conformance]",
+  "description": "A Personal Wallet instance with holder only capabilities",
+  "config": {
+    "trustFramework": "EBSI",
+    "EBSI": {
+      "isOnboarded": false,
+      "configuration": {
+        "conformanceClientId": "",
+        "authorization": "https://api-conformance.ebsi.eu/authorisation/v4",
+        "didRegistry": "https://api-conformance.ebsi.eu/did-registry/v5",
+        "mainSchema": "https://api-pilot.ebsi.eu/trusted-schemas-registry/v3/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM",
+        "trustedIssuersRegistry": "https://api-conformance.ebsi.eu/trusted-issuers-registry/v5",
+        "trustedSchemasRegistry": "https://api-conformance.ebsi.eu/trusted-schemas-registry/v3",
+        "statusListSchema": "https://api-conformance.ebsi.eu/trusted-schemas-registry/v3/schemas/zrpwfYDBB5CcZweDGtFfvSb5xgMsFetkcCDGKPZAPwk4"
+      }
+    },
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    },
+    "walletKeyIdentifier": "did"
+  }
+}

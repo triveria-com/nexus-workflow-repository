@@ -1,0 +1,172 @@
+{
+  "name": "Trust List Owner",
+  "description": "Issues onboarding credentials for Trusted Issuers (PCF Auditors)",
+  "config": {
+    "walletKeyIdentifier": "did",
+    "trustFramework": "IDTL",
+    "credentialIssuers": [
+      {
+        "id": "idtl_tia",
+        "name": "Invitation for Trusted Organizations",
+        "description": "Issue a verifiable credential for IDunion Trust List onboarding and to accredit a trusted issuer",
+        "credentialFormat": "jwt_vc_vcdm",
+        "credentialIssuer": "IssuanceQueue",
+        "credentialType": "VerifiableCredential,VerifiableAccreditation,IDunionTrustListPass"
+      }
+    ],
+    "credentialVerifiers": [
+      {
+        "id": "idtl_tia",
+        "name": "Onboarding Trusted Issuer Accreditation",
+        "description": "Verify IDunion Onboarding Trusted Issuer Accreditation credential",
+        "scope": "idtl_tia_verifier",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "idtl_tia_presentation",
+          "input_descriptors": [
+            {
+              "id": "idtl_tia_credential_type",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": { "contains": { "const": "IDunionTrustListPass" }, "type": "array" },
+                    "path": ["$.vc.type"]
+                  },
+                  { "name": "ID", "path": ["$.vc.credentialSubject.id"] },
+                  { "name": "Onboarding DID", "path": ["$.vc.credentialSubject.onboardingDid"] },
+                  { "name": "Organization Name", "path": ["$.vc.credentialSubject.organizationName"] },
+                  { "name": "Trade Name", "path": ["$.vc.credentialSubject.tradeName"] },
+                  { "name": "Issuing Country", "path": ["$.vc.credentialSubject.issuingCountry"] }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "ebwoid",
+        "name": "EBW Owner Identification Data",
+        "description": "Verify EBWOID credential of an economic operator or public sector body",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "ebwoid_presentation",
+          "input_descriptors": [
+            {
+              "id": "ebwoid",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": { "const": "uri:eu.ebw.oid.1", "type": "string" },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "Business Identifier (EUID)", "path": ["$.id"] },
+                  { "name": "Legal Name", "path": ["$.name"] },
+                  { "name": "Issuing Country", "path": ["$.issuing_country"] }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "oid",
+        "name": "Organization ID",
+        "description": "Verify Legal Person Identifier of an legal entity.",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "oid_presentation",
+          "input_descriptors": [
+            {
+              "id": "oid",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": { "const": "urn:idunion.org:oid:1", "type": "string" },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "Legal Name", "path": ["$.organizationName"] },
+                  { "name": "Legal Form", "path": ["$.tradeName"] }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "passport_full_disclosure",
+        "name": "Verify Passport",
+        "description": "Verify a digital passport requesting full disclosure.",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "passport_full_disclosure_presentation",
+          "input_descriptors": [
+            {
+              "id": "id_Passport",
+              "constraints": {
+                "fields": [
+                  {
+                    "name": "Passport",
+                    "filter": { "const": "urn:idunion.org:passport_copy:1", "type": "string" },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "First Name", "path": ["$.firstName"] },
+                  { "name": "Family Name", "path": ["$.familyName"] }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "national_id_identity_disclosure",
+        "name": "National ID",
+        "description": "Verify digital National ID",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "national_id_identity_disclosure_presentation",
+          "input_descriptors": [
+            {
+              "id": "national_id",
+              "constraints": {
+                "fields": [
+                  {
+                    "name": "National ID",
+                    "filter": {
+                      "const": "urn:idunion.org:nid_copy:1",
+                      "type": "string"
+                    },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "Photo", "path": ["$.photo"] },
+                  { "name": "First Name", "path": ["$.firstName"] },
+                  { "name": "Family Name", "path": ["$.familyName"] },
+                  { "name": "Date of Birth", "path": ["$.dateOfBirth"] },
+                  { "name": "Nationality", "path": ["$.nationality"] }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    }
+  }
+}

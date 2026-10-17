@@ -1,0 +1,24 @@
+{
+  "name": "EUDI Onboarding Authority",
+  "description": "Issues x509 certificates to EUDI wallet holders. When a holder submits a CSR, this wallet signs it and returns the certificate PEM for the holder to import.",
+  "config": {
+    "trustFramework": "EUDI",
+    "walletKeyIdentifier": "x509",
+    "EUDI": {
+      "etsiLotlUrl": "https://webuild-consortium.github.io/wp4-trust-group/list_of_trusted_lists.xml",
+      "trustedLotlCertificates": ["MIIBsjCCAVmgAwIBAgITPvPF+X8GhViy0ozkLPO7+1YNITAKBggqhkjOPQQDAjAwMQswCQYDVQQGEwJFVTEhMB8GA1UECgwYV1A0IFRydXN0IFJlZ2lzdHJ5IEdyb3VwMB4XDTI2MDMyMDEzMjgyNVoXDTI5MDMxOTEzMjgyNVowMDELMAkGA1UEBhMCRVUxITAfBgNVBAoMGFdQNCBUcnVzdCBSZWdpc3RyeSBHcm91cDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJoI9e3meFI++UhQAG3clpKkbSTL2YIuhGZ/4C4kbPjjEgbL8hKywQUlCN6TXUipD8SMjceZ3PnB52qZgAK9Qh2jUjBQMA4GA1UdDwEB/wQEAwIGwDARBgNVHSUECjAIBgYEAJE3AwAwDAYDVR0TAQH/BAIwADAdBgNVHQ4EFgQUh78bCQwjCQICwxtn6FHEQAktn7YwCgYIKoZIzj0EAwIDRwAwRAIgfbkN22wQzj8kfoAgvYk1u86n/jHDB1FEXJA7aH4VuRECIHulljT498YiqnCgRU7UlRXSF/MpC02r1V1DjAue5lYF"]
+    },
+    "credentialIssuers": [
+      {
+        "id": "x509_certificate",
+        "name": "X509 Certificate Issuer",
+        "description": "Issues x509 certificates to EUDI wallet holders based on submitted CSRs",
+        "credentialType": "x509_certificate",
+        "credentialIssuer": "IssuanceQueue",
+        "authorization": "none",
+        "credentialFormat": "sd_jwt_vc"
+      }
+    ],
+    "credentialVerifiers": []
+  }
+}

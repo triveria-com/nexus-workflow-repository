@@ -1,0 +1,231 @@
+{
+  "name": "Demo University [conformance]",
+  "config": {
+    "trustFramework": "EBSI",
+    "EBSI": {
+      "isOnboarded": false,
+      "configuration": {
+        "conformanceClientId": "",
+        "authorization": "https://api-pilot.ebsi.eu/authorisation/v4",
+        "didRegistry": "https://api-pilot.ebsi.eu/did-registry/v5",
+        "mainSchema": "https://api-pilot.ebsi.eu/trusted-schemas-registry/v3/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM",
+        "trustedIssuersRegistry": "https://api-pilot.ebsi.eu/trusted-issuers-registry/v5",
+        "trustedSchemasRegistry": "https://api-pilot.ebsi.eu/trusted-schemas-registry/v3",
+        "statusListSchema": ""
+      }
+    },
+    "credentialIssuers": [
+      {
+        "id": "demo_uni_diploma_with_requirements",
+        "name": "Education Diploma [ID required]",
+        "credentialFormat": "sd_jwt_vc",
+        "disclosableClaims": [
+          "$.familyName",
+          "$.firstName",
+          "$.dateOfBirth",
+          "$.placeOfBirth",
+          "$.achieved"
+        ],
+        "credentialIssuer": "VPDriven",
+        "credentialType": "urn:edu-diploma:1",
+        "issuerConfiguration": {
+          "credentialVerifierId": "passport_or_id_identity_disclosure",
+          "mapping": {
+            "$[0].firstName": "$.firstName",
+            "$[0].familyName": "$.familyName",
+            "$[0].dateOfBirth": "$.dateOfBirth",
+            "$[0].nationality": "$.placeOfBirth"
+          }
+        }
+      },
+      {
+        "id": "demo_uni_diploma",
+        "name": "Education Diploma",
+        "credentialFormat": "sd_jwt_vc",
+        "disclosableClaims": [
+          "$.familyName",
+          "$.firstName",
+          "$.dateOfBirth",
+          "$.placeOfBirth",
+          "$.achieved"
+        ],
+        "credentialIssuer": "IssuanceQueue",
+        "credentialType": "urn:edu-diploma:1"
+      }
+    ],
+    "credentialVerifiers": [
+      {
+        "id": "ebsi_ct_diploma_partial",
+        "name": "Uni diploma achieved only",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": {
+              "alg": [
+                "ES256"
+              ]
+            },
+            "jwt_vp": {
+              "alg": [
+                "ES256"
+              ]
+            }
+          },
+          "id": "diploma_presentation",
+          "input_descriptors": [
+            {
+              "id": "diploma_credential_type",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": {
+                      "const": "urn:edu-diploma:1",
+                      "type": "string"
+                    },
+                    "path": [
+                      "$.vct"
+                    ]
+                  },
+                  {
+                    "name": "Achieved",
+                    "path": [
+                      "$.achieved"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "ebsi_ct_diploma",
+        "name": "Uni diploma full disclosure",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": {
+              "alg": [
+                "ES256"
+              ]
+            },
+            "jwt_vp": {
+              "alg": [
+                "ES256"
+              ]
+            }
+          },
+          "id": "diploma_presentation",
+          "input_descriptors": [
+            {
+              "id": "diploma_credential_type",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": {
+                      "const": "urn:edu-diploma:1",
+                      "type": "string"
+                    },
+                    "path": [
+                      "$.vct"
+                    ]
+                  },
+                  {
+                    "name": "Achieved",
+                    "path": [
+                      "$.achieved"
+                    ]
+                  },
+                  {
+                    "name": "First Name",
+                    "path": [
+                      "$.firstName"
+                    ]
+                  },
+                  {
+                    "name": "Family Name",
+                    "path": [
+                      "$.familyName"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "national_id_identity_disclosure",
+        "name": "National ID",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": {
+              "alg": [
+                "ES256"
+              ]
+            },
+            "jwt_vp": {
+              "alg": [
+                "ES256"
+              ]
+            }
+          },
+          "id": "national_id_identity_disclosure_presentation",
+          "input_descriptors": [
+            {
+              "id": "national_id",
+              "constraints": {
+                "fields": [
+                  {
+                    "name": "National ID",
+                    "filter": {
+                      "const": "urn:idunion.org:nid_copy:1",
+                      "type": "string"
+                    },
+                    "path": [
+                      "$.vct"
+                    ]
+                  },
+                  {
+                    "name": "Photo",
+                    "path": [
+                      "$.photo"
+                    ]
+                  },
+                  {
+                    "name": "First Name",
+                    "path": [
+                      "$.firstName"
+                    ]
+                  },
+                  {
+                    "name": "Family Name",
+                    "path": [
+                      "$.familyName"
+                    ]
+                  },
+                  {
+                    "name": "Date of Birth",
+                    "path": [
+                      "$.dateOfBirth"
+                    ]
+                  },
+                  {
+                    "name": "Nationality",
+                    "path": [
+                      "$.nationality"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    },
+    "walletKeyIdentifier": "did",
+    "legalEntity": true
+  }
+}

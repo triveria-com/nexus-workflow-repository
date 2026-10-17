@@ -1,0 +1,56 @@
+{
+  "name": "EBWOID Issuer",
+  "description": "Issue and verify European Business Wallet Owner Identification Data (EBWOID) credentials as Pub-EAA or QEAA",
+  "config": {
+    "trustFramework": "EUDI",
+    "walletKeyIdentifier": "x509",
+    "EUDI": {
+      "etsiLotlUrl": "https://webuild-consortium.github.io/wp4-trust-group/list_of_trusted_lists.xml",
+      "trustedLotlCertificates": ["MIIBsjCCAVmgAwIBAgITPvPF+X8GhViy0ozkLPO7+1YNITAKBggqhkjOPQQDAjAwMQswCQYDVQQGEwJFVTEhMB8GA1UECgwYV1A0IFRydXN0IFJlZ2lzdHJ5IEdyb3VwMB4XDTI2MDMyMDEzMjgyNVoXDTI5MDMxOTEzMjgyNVowMDELMAkGA1UEBhMCRVUxITAfBgNVBAoMGFdQNCBUcnVzdCBSZWdpc3RyeSBHcm91cDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJoI9e3meFI++UhQAG3clpKkbSTL2YIuhGZ/4C4kbPjjEgbL8hKywQUlCN6TXUipD8SMjceZ3PnB52qZgAK9Qh2jUjBQMA4GA1UdDwEB/wQEAwIGwDARBgNVHSUECjAIBgYEAJE3AwAwDAYDVR0TAQH/BAIwADAdBgNVHQ4EFgQUh78bCQwjCQICwxtn6FHEQAktn7YwCgYIKoZIzj0EAwIDRwAwRAIgfbkN22wQzj8kfoAgvYk1u86n/jHDB1FEXJA7aH4VuRECIHulljT498YiqnCgRU7UlRXSF/MpC02r1V1DjAue5lYF"]
+    },
+    "credentialIssuers": [
+      {
+        "id": "ebwoid",
+        "name": "EBW Owner Identification Data",
+        "description": "Issue EBWOID credential identifying an economic operator or public sector body",
+        "credentialFormat": "sd_jwt_vc",
+        "credentialIssuer": "IssuanceQueue",
+        "credentialType": "uri:eu.ebw.oid.1"
+      }
+    ],
+    "credentialVerifiers": [
+      {
+        "id": "ebwoid",
+        "name": "EBW Owner Identification Data",
+        "description": "Verify EBWOID credential of an economic operator or public sector body",
+        "presentationDefinition": {
+          "format": {
+            "jwt_vc": { "alg": ["ES256"] },
+            "jwt_vp": { "alg": ["ES256"] }
+          },
+          "id": "ebwoid_presentation",
+          "input_descriptors": [
+            {
+              "id": "ebwoid",
+              "constraints": {
+                "fields": [
+                  {
+                    "filter": { "const": "uri:eu.ebw.oid.1", "type": "string" },
+                    "path": ["$.vct"]
+                  },
+                  { "name": "Business Identifier (EUID)", "path": ["$.id"] },
+                  { "name": "Legal Name", "path": ["$.name"] },
+                  { "name": "Issuing Country", "path": ["$.issuing_country"] }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "oidcRevision": {
+      "oidc4vci": "Draft15",
+      "oidc4vp": "Draft23"
+    }
+  }
+}

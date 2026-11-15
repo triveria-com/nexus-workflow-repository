@@ -1,0 +1,37 @@
+{
+  "name": "DPP Buyer",
+  "description": "Verifies a manufacturer's UNTP Digital Product Passport and its Make records, and requests its Digital Conformity Credential.",
+  "summary": "Buyer wallet for workflows/dpp-workflow.md on the NOOP trust framework. Reading published passports, Make records and DCCs needs no configuration; its one verifier, dcc_disclosure, requests the manufacturer's unpublished Digital Conformity Credential over WMP.",
+  "config": {
+    "trustFramework": "NOOP",
+    "walletKeyIdentifier": "did",
+    "credentialVerifiers": [
+      {
+        "id": "dcc_disclosure",
+        "name": "DPP: Digital Conformity Credential",
+        "dcqlQuery": {
+          "credentials": [
+            {
+              "id": "dcc",
+              "format": "jwt_vc_json",
+              "meta": {
+                "type_values": [
+                  [
+                    "DigitalConformityCredential"
+                  ]
+                ]
+              },
+              "claims": [
+                {
+                  "path": [
+                    "id"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

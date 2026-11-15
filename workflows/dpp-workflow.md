@@ -67,8 +67,10 @@ questions:
     prompt: "Supplier: invoice number, issue date, seller and buyer registration/VAT details, amount due, VAT amount and currency. Do you have the underlying invoice document to hash?"
     required: false
     hint: >-
-      These follow WEBUILD's `eu.we-build:einvoice:1` eInvoice attestation: EN 16931 field
-      names carried as SD-JWT VC claims. The credential binds to the invoice document by
+      These follow WEBUILD's `eu.we-build:einvoice:1` eInvoice attestation and its SD-JWT
+      data schema: EN 16931 fields carried as SD-JWT VC claims, with `seller` and `buyer`
+      as objects (`name`, `identifier.euid`, `vat`, `country`) and amounts as decimal
+      strings. The credential binds to the invoice document by
       `invoicePayloadHash`. Never compute or invent this hash yourself from nothing. Ask
       for the document or the hash.
   - id: make_event
@@ -251,8 +253,9 @@ these exist.
   chain or List of Trusted Entities, so `expected_issuer` pinning does that job.
 - **Make record**: UNTP `DigitalTraceabilityEvent`, issued with no holder by the
   manufacturer (`make_event`). **One per supplier product.** Its `credentialSubject` is an
-  **array** holding a single `MakeEvent`, which requires `id`, `name`, `eventDate`,
-  `activityType`, `inputProduct`, `outputProduct` and `madeAtFacility`. `inputProduct` and
+  **array** holding a single `MakeEvent`, whose `type` is `["MakeEvent", "LifecycleEvent"]`
+  (the schema requires both) and which requires `id`, `name`, `eventDate` (a date and
+  time), `activityType`, `inputProduct`, `outputProduct` and `madeAtFacility`. `inputProduct` and
   `outputProduct` are arrays of `{product, quantity, disposition}`, where `product` carries
   only `id`, `name`, `idGranularity` and `modelNumber` / `batchNumber` / `itemNumber`. The
   links to the supplier DPP and the product DPP therefore go in the event's
@@ -266,7 +269,10 @@ the target as (`dpp`, or `https://test.uncefact.org/vocabulary/link-type/dcc`), 
 
 ## Wallet configuration
 
-Worked NOOP configuration snippets to adapt, not load verbatim. A wallet needs no
+The wallet templates `noop/dpp_supplier`, `noop/dpp_manufacturer`, `noop/dpp_buyer` and
+`noop/dpp_assessment_body` (which issues the DCCs) carry these configurations, with the
+credential templates for the DPP, the Make record, the DCC and the eInvoice. Otherwise,
+the snippets below are worked NOOP configurations to adapt, not load verbatim. A wallet needs no
 configuration to hold or present credentials, or to publish one it holds. Only issuing
 (`credentialIssuers`) and interactively requesting a presentation (`credentialVerifiers`)
 need entries.
@@ -290,7 +296,8 @@ supplied per request. The DPP and Make record entries sign with the wallet's DID
 the status list index as a number, as the UNTP 0.7.0 schemas type it
 (`numericStatusListIndex`), or the issued credential fails its own schema check. The
 invoice is `sd_jwt_vc` because that is the only encoding WEBUILD specifies;
-`disclosableClaims` lists what the rulebook marks disclosable, and the fields it marks
+`disclosableClaims` lists what the rulebook marks disclosable, by the top-level claim
+names of WEBUILD's eInvoice SD-JWT data schema, and the fields it marks
 `MUST NOT` (`iss`, `iat`, `exp`, `vct`, `status`, `cnf`, `attestation_legal_category`,
 `invoicePayloadHash`, `invoiceLifecycleStatus`, `precedingInvoiceReference`) always travel
 in the clear. The supplier's wallet needs only the first and third entries, the
@@ -330,10 +337,7 @@ manufacturer's only the second and fourth.
         "credentialIssuer": "IssuanceQueue",
         "disclosableClaims": [
           "$.invoiceFormat", "$.invoiceNumber", "$.issueDate",
-          "$.sellerLegalRegistrationIdentifier", "$.sellerRegistrationName",
-          "$.sellerVatIdentifier", "$.sellerCountry",
-          "$.buyerLegalRegistrationIdentifier", "$.buyerVatIdentifier",
-          "$.buyerCountry", "$.BuyerElectronicAddress",
+          "$.seller", "$.buyer", "$.BuyerElectronicAddress",
           "$.amountDueForPayment", "$.invoiceTotalVatAmount", "$.InvoiceCurrencyCode",
           "$.taxSubtotal", "$.paymentInstructions", "$.evidenceReferences"
         ]
@@ -642,10 +646,10 @@ the invoice's issuer is that supplier's pinned DID.
    ```json
    [
      {
-       "type": ["MakeEvent"],
+       "type": ["MakeEvent", "LifecycleEvent"],
        "id": "<FRESH URI FOR THIS EVENT>",
        "name": "Assembly of <product> using <component>",
-       "eventDate": "<date>",
+       "eventDate": "<DATE AND TIME, e.g. 2026-11-15T00:00:00Z>",
        "activityType": { "code": "<code>", "name": "<name>", "schemeId": "<scheme URI>", "schemeName": "<scheme>" },
        "madeAtFacility": { "type": ["Facility"], "id": "<facility URI>", "name": "<facility name>" },
        "inputProduct": [

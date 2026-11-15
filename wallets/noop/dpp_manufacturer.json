@@ -1,0 +1,57 @@
+{
+  "name": "DPP Manufacturer",
+  "description": "Verifies supplier passports, publishes its own UNTP Digital Product Passport and one Make record per supplier product.",
+  "summary": "Manufacturer wallet for workflows/dpp-workflow.md on the NOOP trust framework. It issues and publishes the UNTP DigitalProductPassport for its product (product_passport, \"dpp\" link) and a DigitalTraceabilityEvent Make record per supplier product (make_event, \"dte\" link), both jwt_vc_vcdm signed with its did:web and a numeric status list index. Its dcc_disclosure verifier requests a supplier's unpublished Digital Conformity Credential over WMP. Created with issuers, so it gets the did:web it publishes under.",
+  "config": {
+    "trustFramework": "NOOP",
+    "walletKeyIdentifier": "did",
+    "credentialIssuers": [
+      {
+        "id": "product_passport",
+        "name": "Product Passport",
+        "credentialFormat": "jwt_vc_vcdm",
+        "credentialType": "VerifiableCredential,DigitalProductPassport",
+        "credentialIssuer": "IssuanceQueue",
+        "signingKeyIdentifier": "did",
+        "numericStatusListIndex": true
+      },
+      {
+        "id": "make_event",
+        "name": "Make Record",
+        "credentialFormat": "jwt_vc_vcdm",
+        "credentialType": "VerifiableCredential,DigitalTraceabilityEvent",
+        "credentialIssuer": "IssuanceQueue",
+        "signingKeyIdentifier": "did",
+        "numericStatusListIndex": true
+      }
+    ],
+    "credentialVerifiers": [
+      {
+        "id": "dcc_disclosure",
+        "name": "DPP: Digital Conformity Credential",
+        "dcqlQuery": {
+          "credentials": [
+            {
+              "id": "dcc",
+              "format": "jwt_vc_json",
+              "meta": {
+                "type_values": [
+                  [
+                    "DigitalConformityCredential"
+                  ]
+                ]
+              },
+              "claims": [
+                {
+                  "path": [
+                    "id"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

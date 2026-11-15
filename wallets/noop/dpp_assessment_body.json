@@ -1,0 +1,20 @@
+{
+  "name": "DPP Conformity Assessment Body",
+  "description": "Issues UNTP Digital Conformity Credentials to suppliers and manufacturers.",
+  "summary": "Conformity assessment body wallet for workflows/dpp-workflow.md on the NOOP trust framework. It issues the UNTP DigitalConformityCredential (dcc, jwt_vc_vcdm signed with its did:web, numeric status list index) to the supplier or manufacturer that holds it, before the workflow starts. Its DID is the one verifiers pin as the assessment body.",
+  "config": {
+    "trustFramework": "NOOP",
+    "walletKeyIdentifier": "did",
+    "credentialIssuers": [
+      {
+        "id": "dcc",
+        "name": "Digital Conformity Credential",
+        "credentialFormat": "jwt_vc_vcdm",
+        "credentialType": "VerifiableCredential,DigitalConformityCredential",
+        "credentialIssuer": "IssuanceQueue",
+        "signingKeyIdentifier": "did",
+        "numericStatusListIndex": true
+      }
+    ]
+  }
+}

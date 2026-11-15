@@ -129,7 +129,13 @@ function checkFormAndDisplay(where, form, display, errors) {
       if (missing.length > 0) {
         errors.push(`${where}: form item "${item?.key ?? "(no key)"}" has no ${missing.join(", ")}`);
       }
-      if (nonEmptyString(item?.key)) claims.add(item.key);
+      if (nonEmptyString(item?.key)) {
+        claims.add(item.key);
+        // A path key (subjectDefinition.pathKeys) such as "seller.name" or
+        // "taxSubtotal[].taxAmount" also defines the top-level claim it nests
+        // under, which is what an SD-JWT disclosable path like "$.seller" names.
+        claims.add(item.key.split(/[.[]/)[0]);
+      }
     }
   }
 

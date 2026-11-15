@@ -1,0 +1,41 @@
+{
+  "name": "DPP Supplier",
+  "description": "Publishes UNTP Digital Product Passports for its component batches and invoices the manufacturer.",
+  "summary": "Supplier wallet for workflows/dpp-workflow.md on the NOOP trust framework. It issues the UNTP DigitalProductPassport for its component batches (component_batch_passport, jwt_vc_vcdm, signed with its did:web, numeric status list index) and publishes it as a \"dpp\" link, and issues WEBUILD eInvoices (eu.we-build:einvoice:1, sd_jwt_vc) to the manufacturer over WMP. It holds its Digital Conformity Credentials, which needs no configuration. Created with issuers, so it gets the did:web it publishes under.",
+  "config": {
+    "trustFramework": "NOOP",
+    "walletKeyIdentifier": "did",
+    "credentialIssuers": [
+      {
+        "id": "component_batch_passport",
+        "name": "Component/Batch Passport",
+        "credentialFormat": "jwt_vc_vcdm",
+        "credentialType": "VerifiableCredential,DigitalProductPassport",
+        "credentialIssuer": "IssuanceQueue",
+        "signingKeyIdentifier": "did",
+        "numericStatusListIndex": true
+      },
+      {
+        "id": "invoice",
+        "name": "eInvoice",
+        "credentialFormat": "sd_jwt_vc",
+        "credentialType": "eu.we-build:einvoice:1",
+        "credentialIssuer": "IssuanceQueue",
+        "disclosableClaims": [
+          "$.invoiceFormat",
+          "$.invoiceNumber",
+          "$.issueDate",
+          "$.seller",
+          "$.buyer",
+          "$.BuyerElectronicAddress",
+          "$.amountDueForPayment",
+          "$.invoiceTotalVatAmount",
+          "$.InvoiceCurrencyCode",
+          "$.taxSubtotal",
+          "$.paymentInstructions",
+          "$.evidenceReferences"
+        ]
+      }
+    ]
+  }
+}

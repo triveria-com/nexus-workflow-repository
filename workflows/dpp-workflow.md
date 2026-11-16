@@ -15,13 +15,28 @@ summary: >-
   DPP, fetches the manufacturer's DCC the same way, and follows the Make records to the
   supplier DPPs to learn what the product is made of. NOOP has no trust list behind any of
   this, so every verifying step has to pin the issuer DID out of band, and this workflow
-  says where.
+  says where. On the UNTP trust framework instead, a registrar anchors every party's DID
+  with a Digital Identity Anchor (DIA), and UNTP wallets refuse anything signed by a DID no
+  trusted registrar anchors; the workflow covers setting up the registrar (the
+  untp/registrar wallet template), registering and onboarding the members, and what changes
+  when verifying.
 questions:
+  - id: trust_framework
+    prompt: Which trust framework are the parties' wallets on?
+    required: true
+    options: [NOOP, UNTP]
+    hint: >-
+      "NOOP" = no trust list: every verifier pins each issuer DID out of band. "UNTP" = every
+      party (assessment bodies included) is anchored by a Digital Identity Anchor from a
+      registrar the verifying wallets trust; use the wallets/untp/ templates. Pick UNTP only
+      if a registrar is, or will be, set up and trusted.
   - id: role
     prompt: Which role are you acting in?
     required: true
-    options: [supplier, manufacturer, buyer, owner]
+    options: [registrar, supplier, manufacturer, buyer, owner]
     hint: >-
+      "registrar" (UNTP only) = the party that registers the others and issues them Digital
+      Identity Anchors binding their DIDs to their registered identities.
       "supplier" = a component maker that publishes a DPP, holds DCCs (published or
       private), and invoices the manufacturer. "manufacturer" = the company building a
       product from supplier components, publishing its own DPP and Make records, and
@@ -85,8 +100,9 @@ questions:
     prompt: "Which DID do you expect to have signed each credential you are checking, and how do you know it?"
     required: false
     hint: >-
-      NOOP has no trust list, so this is the whole of your trust decision, made separately
-      per credential kind. A supplier DPP's issuer is the supplier. A DCC's issuer is the
+      On NOOP there is no trust list, so this is the whole of your trust decision, made
+      separately per credential kind. On UNTP the issuer's anchor says who the DID is
+      registered as; still compare that identity with the counterparty you expect. A supplier DPP's issuer is the supplier. A DCC's issuer is the
       assessment body. The product DPP's and Make records' issuer is the manufacturer.
       Source each from the counterparty's own website (did:web), a contract, or an
       onboarding pack. Never take it from the credential you are checking, or from the DID
@@ -203,7 +219,7 @@ State this limitation when reporting any result. "Signed by `did:web:supplier.ex
 which matches the DID in your supplier record" is an honest verification on NOOP.
 "Verified" on its own is not.
 
-### On a UNTP wallet instead
+## On the UNTP trust framework
 
 UNTP's own answer to "who is this DID" is a **Digital Identity Anchor (DIA)**: a credential
 from a registrar binding the DID to a registered identity. A wallet created with
@@ -216,11 +232,28 @@ registrations it found.
 Use it only when every party in the chain, assessment bodies included, holds a DIA from a
 registrar the wallet trusts. Otherwise nothing they sign verifies. Even then, compare the
 registered identity in `untp.registrations` with the counterparty you expect: the DIA
-tells you who the DID is, not that it is the supplier you contracted with. The rest of
-this workflow assumes NOOP.
+tells you who the DID is, not that it is the supplier you contracted with.
 
-Getting every party anchored, with the `wallets/untp/` templates (`untp/registrar`, and
-UNTP-member variants of the supplier, manufacturer, buyer and assessment body):
+The procedures below are written for NOOP. On UNTP they change in three places:
+
+- **Wallets** come from the `wallets/untp/` templates: `untp/registrar`, and the members
+  `untp/dpp_supplier`, `untp/dpp_manufacturer`, `untp/dpp_buyer` and
+  `untp/dpp_assessment_body` (the same issuers as their NOOP counterparts, with
+  `trustFramework: UNTP`, and issuer policies requiring a DIA for DPPs, Make records and
+  DCCs on the wallets that verify).
+- **Before publishing anything**, a supplier, manufacturer or assessment body must be
+  anchored (`UNTP.isOnboarded`). A DPP published earlier verifies once the publisher is
+  anchored; it does not need to be issued again.
+- **When verifying**, the wallet checks the anchor itself. Report who the anchor says signed
+  each credential (the registered name and the registrar) and ask the user to compare it with
+  the counterparty they expect; with an `expected_issuer`, a different DID still fails.
+
+### Setting up the registrar and anchoring every party
+
+The registrar comes first. Its configuration is the whole `untp/registrar` template:
+`trustFramework: UNTP`, `walletKeyIdentifier: did` and `UNTP: {role: "registrar", registrar:
+{name}}`, with `registrar.name` set to the name it signs DIAs as. It needs no
+`credentialIssuers` entry: the `untp-dia` issuer is built in.
 
 1. The registrar's DID has to be a trusted registrar: of the deployment (on dev,
    `WALLET_UNTP_DIA_TRUSTED_REGISTRARS`) or of each verifying wallet
@@ -235,6 +268,18 @@ UNTP-member variants of the supplier, manufacturer, buyer and assessment body):
    (`WalletConfigurationVerify` shows `UNTP.isOnboarded`).
 4. A DIA is revoked with `TfRevokeAccreditation` (`type: "UntpRegistration"`); everything
    its member signs then stops verifying on UNTP wallets.
+
+`TfUntpDiaIssue` issues a DIA without the member proving control of its DID; it is for
+closed pilots only and the wallet refuses it unless the deployment allows unverified DID
+binding.
+
+**In the Nexus UI**, steps 2 to 4 are screens, not assistant tools: the registrar wallet's
+*Registered members* section (*Register a member*, *Show offer*, *Revoke*), and the member
+wallet's *Anchor* row (onboard with the offer link and PIN, or a held anchor). The Nexus
+assistant can read `TfUntpRequestList`, `TfUntpDiaList` and `VerifierDidVerify`, and should
+point the user to those screens for the rest. To create the registrar, import the *UNTP
+Registrar* template (Building Blocks › Identity Templates › Import › Select Pre-defined), or
+save the configuration above as a wallet template, and create the wallet from it.
 
 ## Credential types
 
@@ -420,7 +465,11 @@ replaces the query's `id` claim with one that must have that value:
 
 ## Prerequisites: all roles
 
-- A wallet whose `config.trustFramework` is `NOOP` and whose `walletKeyIdentifier` is
+- On UNTP: a wallet from the matching `wallets/untp/` template, anchored before it publishes
+  anything (see [On the UNTP trust framework](#on-the-untp-trust-framework)); the rest of this
+  list applies too, except that counterparties read the DID's anchor instead of only pinning
+  it.
+- On NOOP: a wallet whose `config.trustFramework` is `NOOP` and whose `walletKeyIdentifier` is
   `did`. The `Triveria Organization` and `Triveria Holder` templates are both NOOP; for a
   supplier or manufacturer, use one created with the issuer entries above.
 - No onboarding step. Confirm with `WalletConfigurationVerify` and get the wallet's own DID
@@ -494,7 +543,10 @@ Used by the manufacturer for each supplier DPP, and by the buyer and owner for t
 DPP, its Make records and the supplier DPPs they link to.
 
 1. Establish `expected_issuer` first. If the user cannot say which DID should have signed
-   it, stop and say so: there is nothing to verify against on NOOP.
+   it, stop and say so: there is nothing to verify against on NOOP. On UNTP, the issuer's
+   anchor can stand in for it: check it with `VerifierDidVerify` (with `credentialType`
+   `DigitalProductPassport`, `DigitalTraceabilityEvent` or `DigitalConformityCredential`), and
+   report the registered identity for the user to compare with the counterparty they expect.
 2. Fetch and verify it:
    - by the publisher's DID: `VerifierUntpResolve` with `identifier` the DID, `linkType`
      `dpp` (or `dte`) and `fetch=true`. Each entry of `credentials` is a linked credential
@@ -572,6 +624,21 @@ issuer-side setup to present.
 2. Confirm with the user before presenting. This is the step that discloses private data,
    and only the directly downstream party that asked should get it.
 3. Present with `HolderCredentialsPresentAfterConsent`.
+
+## Registrar (UNTP only)
+
+1. Create the registrar wallet from `untp/registrar`, with `registrar.name` set. Give its DID
+   to the deployment operator, or to each verifying party for its `UNTP.trustedRegistrars`:
+   until one of them trusts it, its DIAs anchor nobody. `UntpRegistryList` shows, in
+   `self.listed`, whether the registrar's own wallet trusts its DID.
+2. For each supplier, manufacturer, buyer and assessment body: get its `did:web` DID and its
+   registrations (register URI and type, its ID in that register, the recognition scopes you
+   grant, e.g. a scheme permitting it to issue DPPs), then register it and send the offer as in
+   [Setting up the registrar](#setting-up-the-registrar-and-anchoring-every-party).
+3. Watch `TfUntpRequestList` until the member has onboarded; it then appears in
+   `TfUntpDiaList`. Tell the member to publish only after that.
+4. Revoke a member's DIA when its registration ends. Warn the user first: everything it
+   signed stops verifying on UNTP wallets.
 
 ## Supplier
 

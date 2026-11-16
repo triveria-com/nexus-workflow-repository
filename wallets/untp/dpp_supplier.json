@@ -1,0 +1,45 @@
+{
+  "name": "DPP Supplier (UNTP)",
+  "description": "Publishes UNTP Digital Product Passports for its component batches and invoices the manufacturer. On the UNTP trust framework, anchored by a Digital Identity Anchor.",
+  "summary": "DPP Supplier wallet for workflows/dpp-workflow.md on the UNTP trust framework (role member): the issuers and verifier of noop/dpp_supplier, but every DID it verifies must be anchored by a Digital Identity Anchor chained to a registrar it trusts, and it onboards with a DIA from a registrar (untp/registrar) before others can verify what it signs. It publishes its component passports and invoices the manufacturer.",
+  "config": {
+    "trustFramework": "UNTP",
+    "walletKeyIdentifier": "did",
+    "credentialIssuers": [
+      {
+        "id": "component_batch_passport",
+        "name": "Component/Batch Passport",
+        "credentialFormat": "jwt_vc_vcdm",
+        "credentialType": "VerifiableCredential,DigitalProductPassport",
+        "credentialIssuer": "IssuanceQueue",
+        "signingKeyIdentifier": "did",
+        "numericStatusListIndex": true
+      },
+      {
+        "id": "invoice",
+        "name": "eInvoice",
+        "credentialFormat": "sd_jwt_vc",
+        "credentialType": "eu.we-build:einvoice:1",
+        "credentialIssuer": "IssuanceQueue",
+        "disclosableClaims": [
+          "$.invoiceFormat",
+          "$.invoiceNumber",
+          "$.issueDate",
+          "$.seller",
+          "$.buyer",
+          "$.BuyerElectronicAddress",
+          "$.amountDueForPayment",
+          "$.invoiceTotalVatAmount",
+          "$.InvoiceCurrencyCode",
+          "$.taxSubtotal",
+          "$.paymentInstructions",
+          "$.evidenceReferences"
+        ]
+      }
+    ],
+    "UNTP": {
+      "isOnboarded": false,
+      "role": "member"
+    }
+  }
+}

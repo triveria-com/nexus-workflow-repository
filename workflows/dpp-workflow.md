@@ -219,6 +219,23 @@ registered identity in `untp.registrations` with the counterparty you expect: th
 tells you who the DID is, not that it is the supplier you contracted with. The rest of
 this workflow assumes NOOP.
 
+Getting every party anchored, with the `wallets/untp/` templates (`untp/registrar`, and
+UNTP-member variants of the supplier, manufacturer, buyer and assessment body):
+
+1. The registrar's DID has to be a trusted registrar: of the deployment (on dev,
+   `WALLET_UNTP_DIA_TRUSTED_REGISTRARS`) or of each verifying wallet
+   (`UNTP.trustedRegistrars`).
+2. For each member, the registrar makes a DIA pending with `TfOnboardRequest` (`did`,
+   `validUntil`, and `untp`: the member's `name` and its `registration`s) and sends it a
+   pre-authorized offer (`IssuerInitiatePreauthOffer` with `issuerId: "untp-dia"`,
+   `clientId` the member's DID, over WMP with `wmpEntityId` or as a URL). `TfUntpRequestList`
+   and `TfUntpDiaList` show what is pending and what was issued.
+3. The member onboards with `TfOnboard` and the offer (`{"offer": {"url", "pin"}}`). Its
+   wallet verifies the DIA, publishes it as a `dia` link and is then anchored
+   (`WalletConfigurationVerify` shows `UNTP.isOnboarded`).
+4. A DIA is revoked with `TfRevokeAccreditation` (`type: "UntpRegistration"`); everything
+   its member signs then stops verifying on UNTP wallets.
+
 ## Credential types
 
 Call `IssuerCredentialTypesList` to see what the wallet actually has before assuming any of

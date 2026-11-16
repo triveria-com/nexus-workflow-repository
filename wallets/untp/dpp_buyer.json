@@ -1,0 +1,55 @@
+{
+  "name": "DPP Buyer (UNTP)",
+  "description": "Verifies a manufacturer's UNTP Digital Product Passport and its Make records, and requests its Digital Conformity Credential. On the UNTP trust framework, anchored by a Digital Identity Anchor.",
+  "summary": "DPP Buyer wallet for workflows/dpp-workflow.md on the UNTP trust framework (role member): the issuers and verifier of noop/dpp_buyer, but every DID it verifies must be anchored by a Digital Identity Anchor chained to a registrar it trusts, and it onboards with a DIA from a registrar (untp/registrar) before others can verify what it signs. It verifies the manufacturer's passport and Make records and requires a DIA of every issuer it verifies.",
+  "config": {
+    "trustFramework": "UNTP",
+    "walletKeyIdentifier": "did",
+    "credentialVerifiers": [
+      {
+        "id": "dcc_disclosure",
+        "name": "DPP: Digital Conformity Credential",
+        "dcqlQuery": {
+          "credentials": [
+            {
+              "id": "dcc",
+              "format": "jwt_vc_json",
+              "meta": {
+                "type_values": [
+                  [
+                    "DigitalConformityCredential"
+                  ]
+                ]
+              },
+              "claims": [
+                {
+                  "path": [
+                    "id"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "UNTP": {
+      "isOnboarded": false,
+      "role": "member",
+      "issuerPolicy": [
+        {
+          "credentialType": "DigitalProductPassport",
+          "requireDia": true
+        },
+        {
+          "credentialType": "DigitalTraceabilityEvent",
+          "requireDia": true
+        },
+        {
+          "credentialType": "DigitalConformityCredential",
+          "requireDia": true
+        }
+      ]
+    }
+  }
+}

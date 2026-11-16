@@ -17,7 +17,7 @@ export const credentialsDir = path.join(repoRoot, "credentials");
 // templates themselves.
 export const INDEX_FILE = "index.json";
 
-export const TRUST_FRAMEWORKS = ["EBSI", "EUDI", "IDTL", "NOOP"];
+export const TRUST_FRAMEWORKS = ["EBSI", "EUDI", "IDTL", "NOOP", "UNTP"];
 
 /**
  * The file name, without ".json", of the credential template for a credential

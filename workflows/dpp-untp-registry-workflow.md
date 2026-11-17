@@ -5,9 +5,10 @@ summary: >-
   The DPP supply chain on the UNTP trust framework, for an open ecosystem: member wallets
   list no registrars of their own and trust exactly the registrars the wallet deployment
   publishes in its remote registry (untp.dia.registryUrl). Before any step, Nexus checks
-  that the wallet relies on that registry alone, that the registry is configured and
-  answering (UntpRegistryList is not empty), and that the registrar anchoring the parties is
-  listed and active, and stops otherwise. Each party onboards with a Digital Identity Anchor
+  that the wallet relies on that registry alone, that the deployment has a registry URL and
+  a copy of it to serve (UntpRegistryList's registry status), and that the registrar
+  anchoring the parties is listed in that registry (a registrar's source) and active, and
+  stops otherwise. Each party onboards with a Digital Identity Anchor
   (DIA) from a listed registrar. From then on the parties carry UNTP Digital Product
   Passports along the supply chain as in the NOOP workflow: suppliers publish DPPs and hold
   Digital Conformity Credentials (DCCs), the manufacturer verifies them, accepts invoices
@@ -167,9 +168,9 @@ A UNTP wallet trusts registrars from three places, in this order of precedence:
 2. the deployment's configured list (`untp.dia.trustedRegistrars`);
 3. the deployment's **remote registry**: `untp.dia.registryUrl`
    (`WALLET_UNTP_DIA_REGISTRY_URL`), an https URL serving a JSON list of registrars. The
-   wallet refreshes it hourly and, while it cannot fetch it, keeps using the last good list
-   for 24 hours. After that the wallet cannot list or look up registrars at all, so
-   `UntpRegistryList` fails and nothing verifies.
+   wallet refreshes it hourly and, while it cannot fetch it, keeps using the last good copy
+   for 24 hours. After that it has no copy, and none of the registry's registrars anchors
+   anyone.
 
 This flavor uses the third. The member wallets therefore carry **no**
 `UNTP.trustedRegistrars`: a registrar listed there would take precedence over the registry,
@@ -177,12 +178,16 @@ which is the closed flavor's model, not this one's. The wallet operator, not Nex
 `registryUrl`; Nexus cannot set it, and must not work around a missing one by adding
 registrars to the wallet.
 
-What Nexus can see is the result: `UntpRegistryList` returns every registrar the wallet
-trusts, with no record of which place each came from. With no registrars of the wallet's
-own, everything it returns is the deployment's. It cannot tell a registry entry from one of
-the deployment's configured list, so the **Registry check** below establishes that the
-deployment's registrars are present and include the one that matters, and says so in
-those terms.
+`UntpRegistryList` shows Nexus all of this, which is what the **Registry check** below
+reads:
+
+- `registrars`: every registrar the wallet trusts. Each has a `source` (`wallet`,
+  `deployment` or `registry`: the place whose entry wins) and, when it is listed in more
+  than one place, `alsoIn` (the others). A registrar is **listed in the registry** when its
+  `source` is `registry` or its `alsoIn` contains `registry`.
+- `registry`: present only when the deployment has a `registryUrl`. It carries the `url`,
+  `fetchedAt` (when the copy in use was fetched), `stale` (a refetch failed and the last copy
+  is being served) and `error` (there is no copy to serve, and why).
 
 What an anchor gives you, and what it does not:
 
@@ -195,7 +200,7 @@ What an anchor gives you, and what it does not:
   registered identity with the one you expect, and the credential's `issuer` with
   `expected_issuer` where you have one.
 - The registry can change under you: a registrar removed from it, or suspended, stops
-  anchoring anyone, and a registry unreachable for over a day stops all of them. That is
+  anchoring anyone, and a registry with no copy to serve stops all of them. That is
   why the check runs before every step, not once.
 
 ## How the wallet publishes and reads UNTP credentials
@@ -215,7 +220,6 @@ What an anchor gives you, and what it does not:
   `https://test.uncefact.org/vocabulary/link-type/dte` for a DTE. `UntpLinkPublish`
   publishes a credential the wallet already holds, `UntpLinkList` lists what is
   published, and `UntpLinkDelete` withdraws one.
-
 - **Who can publish.** Only a wallet with a self-hosted `did:web` can carry links. A UNTP
   wallet always gets one. Only an issued, valid VCDM credential can be published, so a DCC
   in another format (e.g. SD-JWT VC) stays private.
@@ -251,24 +255,38 @@ turns this workflow into the closed flavor without anyone deciding to.
    registrars of its own, stop: they take precedence over the registry, so this wallet is
    on the closed flavor. Tell the user to remove them under *Trusted registrars* in the
    wallet's trust framework settings, or to run `dpp-untp-closed` instead.
-3. `UntpRegistryList` answers and `registrars` is not empty. If it is empty, stop and tell
-   the user: **the wallet deployment has no registry of registrars**: `untp.dia.registryUrl`
-   (`WALLET_UNTP_DIA_REGISTRY_URL`) is not set. If the call fails, stop too: the registry
-   has most likely not answered for over 24 hours. Nothing can be anchored on this wallet and nothing a UNTP party signs will
-   verify. Only the wallet operator can fix it; give them the deployment and the time of
-   the check.
-4. Report the registrars `UntpRegistryList` returned: `name`, `did`, `status` and whether
-   each is `authoritative`. If `registrar_did` is known, it must be among them, with a
-   `status` of `Active` or none. Otherwise stop: the registrar that anchors the parties is
-   not in the registry, or has been suspended. If `registrar_did` is not known, ask the
-   user to confirm the registrar they expect is listed.
-5. Before publishing, presenting or issuing anything (supplier, manufacturer, assessment
+3. `UntpRegistryList` has a `registry`. If not, stop and tell the user: **the wallet
+   deployment has no registry of registrars**: `untp.dia.registryUrl`
+   (`WALLET_UNTP_DIA_REGISTRY_URL`) is not set, or the wallet service is too old to report
+   it. Nothing a UNTP party signs can be anchored through a registry on this deployment.
+   Only the wallet operator can fix it; give them the deployment and the time of the check.
+   Also confirm here that no registrar has `source` `wallet` (step 2 seen from the wallet's
+   side).
+4. `registry.error` is absent and `registry.fetchedAt` is set. Otherwise stop: the wallet
+   cannot fetch the registry at `registry.url` and has no copy left to serve. Give the user
+   the `url` and the `error` for the wallet operator. If `registry.stale` is `true`, go on,
+   but tell the user the wallet is using the copy fetched at `fetchedAt` because it cannot
+   refetch it: a registrar added, removed or suspended since then is not reflected yet, and
+   the copy stops being used 24 hours after it was fetched.
+5. At least one registrar is **listed in the registry** (`source` `registry`, or `registry`
+   in `alsoIn`). Otherwise stop: the registry the deployment points at lists nobody. Report
+   the registrars listed in the registry: `name`, `did`, `status` and whether each is
+   `authoritative`. Registrars whose only place is `deployment` are trusted too, but through
+   the deployment's fixed list, not the registry; mention them separately and do not rely on
+   them in this workflow.
+6. If `registrar_did` is known, it is **listed in the registry**, with a `status` of
+   `Active` or none. Otherwise stop: the registrar that anchors the parties is not in the
+   registry (if it is listed only with `source` `deployment`, say so: it is trusted through
+   the deployment's fixed list, and the operator has to publish it in the registry), or it
+   has been suspended. If `registrar_did` is not known, ask the user to confirm the registrar
+   they expect is among those of step 5.
+7. Before publishing, presenting or issuing anything (supplier, manufacturer, assessment
    body, buyer): `WalletConfigurationVerify` shows `UNTP.isOnboarded: true`, and
    `VerifierDidVerify` on the wallet's own DID is `trusted`, with `untp.registrar.did` one
-   of the registrars from step 4. Otherwise the party is not anchored yet: see
-   **Onboarding**.
+   of the registrars listed in the registry (step 5). Otherwise the party is not anchored
+   yet, or not by a registry registrar: see **Onboarding**.
 
-The owner skips step 5: it only reads public data and needs no anchor of its own.
+The owner skips step 7: it only reads public data and needs no anchor of its own.
 
 ## Onboarding: every role except owner
 
@@ -276,7 +294,7 @@ The owner skips step 5: it only reads public data and needs no anchor of its own
    Templates › Import › Select Pre-defined): *DPP Supplier (UNTP)*, *DPP Manufacturer
    (UNTP)*, *DPP Conformity Assessment Body (UNTP)* or *DPP Buyer (UNTP)*. They carry no
    trusted registrars, which is what this flavor needs. Run the **Registry check**, steps 1
-   to 4.
+   to 6.
 2. Give a registrar listed in the registry the wallet's DID (`WalletIdentifierGet`) and the
    party's registration: the register (URI and type), its ID in that register, its
    registered name, and the recognition scopes it is applying for. How the registrar
@@ -286,8 +304,8 @@ The owner skips step 5: it only reads public data and needs no anchor of its own
    wallet's *Anchor* row. The wallet verifies the DIA against the registrars it trusts,
    publishes it as a `dia` link and is then anchored. If onboarding refuses the DIA because
    its registrar is not trusted, the registrar is not in the registry: go back to the
-   **Registry check**, step 4.
-4. Run the **Registry check** again, including step 5.
+   **Registry check**, step 6.
+4. Run the **Registry check** again, including step 7.
 
 ## Credential types
 
@@ -557,7 +575,7 @@ DPP, its Make records and the supplier DPPs they link to.
    2. The issuer is anchored by a registrar from the registry: `VerifierDidVerify` with the
       credential's `issuer` and `credentialType` (`DigitalProductPassport`,
       `DigitalTraceabilityEvent` or `DigitalConformityCredential`) is `trusted`, and
-      `untp.registrar.did` is one of the registrars the **Registry check** listed (and
+      `untp.registrar.did` is listed in the registry (**Registry check**, step 5) (and
       `registrar_did`, when the user named one for this party). Note the registered name
       and register from `untp.registrations`.
    3. The credential's `issuer` equals `expected_issuer`, where there is one. Otherwise the

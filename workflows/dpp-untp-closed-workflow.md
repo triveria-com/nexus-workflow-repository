@@ -207,7 +207,6 @@ What that gives you, and what it does not:
   `https://test.uncefact.org/vocabulary/link-type/dte` for a DTE. `UntpLinkPublish`
   publishes a credential the wallet already holds, `UntpLinkList` lists what is
   published, and `UntpLinkDelete` withdraws one.
-
 - **Who can publish.** Only a wallet with a self-hosted `did:web` can carry links. A UNTP
   wallet always gets one. Only an issued, valid VCDM credential can be published, so a DCC
   in another format (e.g. SD-JWT VC) stays private.
@@ -328,8 +327,10 @@ ecosystem, or against none.
    created from the registrar's member template: add the registrar under *Trusted
    registrars* in the wallet's trust framework settings, or create the wallet from the
    template.
-3. `UntpRegistryList`: `registrar_did` is among `registrars`. This is what the wallet
-   actually trusts at run time, which step 2 only configures.
+3. `UntpRegistryList`: `registrar_did` is among `registrars`, with `source` `wallet`. This
+   is what the wallet actually trusts at run time, which step 2 only configures. Any other
+   registrars it returns (`source` `deployment` or `registry`) are the deployment's; they are
+   trusted too, but this ecosystem does not rely on them.
 4. Before publishing, presenting or issuing anything (supplier, manufacturer, assessment
    body, buyer): `WalletConfigurationVerify` shows `UNTP.isOnboarded: true`, and
    `VerifierDidVerify` on the wallet's own DID is `trusted` with `untp.registrar.did`

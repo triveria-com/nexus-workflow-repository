@@ -168,7 +168,8 @@ A UNTP wallet trusts registrars from three places, in this order of precedence:
 3. the deployment's **remote registry**: `untp.dia.registryUrl`
    (`WALLET_UNTP_DIA_REGISTRY_URL`), an https URL serving a JSON list of registrars. The
    wallet refreshes it hourly and, while it cannot fetch it, keeps using the last good list
-   for 24 hours, then trusts none of its registrars.
+   for 24 hours. After that the wallet cannot list or look up registrars at all, so
+   `UntpRegistryList` fails and nothing verifies.
 
 This flavor uses the third. The member wallets therefore carry **no**
 `UNTP.trustedRegistrars`: a registrar listed there would take precedence over the registry,
@@ -250,10 +251,10 @@ turns this workflow into the closed flavor without anyone deciding to.
    registrars of its own, stop: they take precedence over the registry, so this wallet is
    on the closed flavor. Tell the user to remove them under *Trusted registrars* in the
    wallet's trust framework settings, or to run `dpp-untp-closed` instead.
-3. `UntpRegistryList`: `registrars` is not empty. If it is empty, stop and tell the user:
-   **the wallet deployment has no registry of registrars**: `untp.dia.registryUrl`
-   (`WALLET_UNTP_DIA_REGISTRY_URL`) is not set, or the registry has not answered for over
-   24 hours. Nothing can be anchored on this wallet and nothing a UNTP party signs will
+3. `UntpRegistryList` answers and `registrars` is not empty. If it is empty, stop and tell
+   the user: **the wallet deployment has no registry of registrars**: `untp.dia.registryUrl`
+   (`WALLET_UNTP_DIA_REGISTRY_URL`) is not set. If the call fails, stop too: the registry
+   has most likely not answered for over 24 hours. Nothing can be anchored on this wallet and nothing a UNTP party signs will
    verify. Only the wallet operator can fix it; give them the deployment and the time of
    the check.
 4. Report the registrars `UntpRegistryList` returned: `name`, `did`, `status` and whether

@@ -1,7 +1,7 @@
 {
   "name": "UNTP Registrar",
   "description": "Issues UNTP Digital Identity Anchors that bind member DIDs to identities in its registers.",
-  "summary": "UNTP registrar wallet on the UNTP trust framework (role registrar). It registers member DIDs and issues them Digital Identity Anchors through its built-in untp-dia issuer (OpenID4VCI, with the member proving control of its DID), lists pending requests and issued DIAs, and revokes them. Its own DID must be a trusted registrar of the deployment (on dev: WALLET_UNTP_DIA_TRUSTED_REGISTRARS) or of the verifying wallet for its DIAs to count. Set registrar.name to the name it signs DIAs as.",
+  "summary": "UNTP registrar wallet on the UNTP trust framework (role registrar). It registers member DIDs and issues them Digital Identity Anchors through its built-in untp-dia issuer (OpenID4VCI, with the member proving control of its DID), lists pending requests and issued DIAs, and revokes them. Its own DID must be a trusted registrar of the deployment (on dev: WALLET_UNTP_DIA_TRUSTED_REGISTRARS) or of the verifying wallet for its DIAs to count. Set registrar.name to the name it signs DIAs as. In workflows/dpp-untp-closed-workflow.md it runs a closed DPP ecosystem: member wallets list its DID in their own UNTP.trustedRegistrars instead.",
   "config": {
     "trustFramework": "UNTP",
     "walletKeyIdentifier": "did",

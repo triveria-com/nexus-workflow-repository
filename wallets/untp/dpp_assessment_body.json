@@ -1,7 +1,7 @@
 {
   "name": "DPP Conformity Assessment Body (UNTP)",
   "description": "Issues UNTP Digital Conformity Credentials to suppliers and manufacturers. On the UNTP trust framework, anchored by a Digital Identity Anchor.",
-  "summary": "DPP Conformity Assessment Body wallet for workflows/dpp-workflow.md on the UNTP trust framework (role member): the issuers and verifier of noop/dpp_assessment_body, but every DID it verifies must be anchored by a Digital Identity Anchor chained to a registrar it trusts, and it onboards with a DIA from a registrar (untp/registrar) before others can verify what it signs. It issues Digital Conformity Credentials.",
+  "summary": "DPP Conformity Assessment Body wallet for workflows/dpp-untp-closed-workflow.md and workflows/dpp-untp-registry-workflow.md on the UNTP trust framework (role member): the issuers and verifier of noop/dpp_assessment_body, but every DID it verifies must be anchored by a Digital Identity Anchor chained to a registrar it trusts, and it onboards with a DIA from a registrar before others can verify what it signs. It lists no trusted registrars of its own, so as is it trusts the deployment's registry (dpp-untp-registry); in dpp-untp-closed, a Nexus registrar (untp/registrar) saves a copy listing its DID in UNTP.trustedRegistrars. It issues Digital Conformity Credentials.",
   "config": {
     "trustFramework": "UNTP",
     "walletKeyIdentifier": "did",

@@ -1,7 +1,7 @@
 {
   "name": "DPP Manufacturer (UNTP)",
   "description": "Verifies supplier passports, publishes its own UNTP Digital Product Passport and one Make record per supplier product. On the UNTP trust framework, anchored by a Digital Identity Anchor.",
-  "summary": "DPP Manufacturer wallet for workflows/dpp-workflow.md on the UNTP trust framework (role member): the issuers and verifier of noop/dpp_manufacturer, but every DID it verifies must be anchored by a Digital Identity Anchor chained to a registrar it trusts, and it onboards with a DIA from a registrar (untp/registrar) before others can verify what it signs. It verifies supplier passports, publishes its product passport and Make records, and requires a DIA of every passport, Make record and DCC issuer it verifies.",
+  "summary": "DPP Manufacturer wallet for workflows/dpp-untp-closed-workflow.md and workflows/dpp-untp-registry-workflow.md on the UNTP trust framework (role member): the issuers and verifier of noop/dpp_manufacturer, but every DID it verifies must be anchored by a Digital Identity Anchor chained to a registrar it trusts, and it onboards with a DIA from a registrar before others can verify what it signs. It lists no trusted registrars of its own, so as is it trusts the deployment's registry (dpp-untp-registry); in dpp-untp-closed, a Nexus registrar (untp/registrar) saves a copy listing its DID in UNTP.trustedRegistrars. It verifies supplier passports, publishes its product passport and Make records, and requires a DIA of every passport, Make record and DCC issuer it verifies.",
   "config": {
     "trustFramework": "UNTP",
     "walletKeyIdentifier": "did",
